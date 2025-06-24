@@ -23,7 +23,7 @@ export function TaskList({ tasks, shifts, onToggleComplete, onDelete }: TaskList
   const shiftsMap = new Map(shifts.map(s => [s.id, s]));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-2xl mx-auto">
       {tasks.map((task) => (
         <TaskItem
           key={task.id}

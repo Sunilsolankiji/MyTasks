@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,17 +17,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import type { Task, Shift } from "@/lib/types";
 
-const taskSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  date: z.date({ required_error: "A date is required." }),
-  time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "A valid time is required."),
-  shiftId: z.string().min(1, "Please select a shift."),
-  notes: z.string().optional(),
-  attachment: z.any().optional(),
-});
-
-type TaskFormValues = z.infer<typeof taskSchema>;
-
 interface TaskFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -35,6 +25,50 @@ interface TaskFormProps {
 }
 
 export function TaskForm({ isOpen, onClose, onSubmit, shifts }: TaskFormProps) {
+  const taskSchema = useMemo(() => {
+    return z.object({
+      title: z.string().min(1, "Title is required"),
+      date: z.date({ required_error: "A date is required." }),
+      time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "A valid time is required."),
+      shiftId: z.string().min(1, "Please select a shift."),
+      notes: z.string().optional(),
+      attachment: z.any().optional(),
+    }).superRefine((data, ctx) => {
+      if (!data.shiftId || !data.time) {
+        return; // Let other validators handle this.
+      }
+      const selectedShift = shifts.find(s => s.id === data.shiftId);
+      if (!selectedShift) {
+        return; // Should not happen if form is consistent.
+      }
+
+      const { startTime, endTime } = selectedShift;
+      const taskTime = data.time;
+
+      const isOvernight = endTime < startTime;
+
+      if (isOvernight) {
+        if (taskTime < startTime && taskTime > endTime) {
+           ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Time must be within shift hours (${startTime} - ${endTime}).`,
+            path: ["time"],
+          });
+        }
+      } else { // Same day shift
+        if (taskTime < startTime || taskTime > endTime) {
+           ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Time must be within shift hours (${startTime} - ${endTime}).`,
+            path: ["time"],
+          });
+        }
+      }
+    });
+  }, [shifts]);
+
+  type TaskFormValues = z.infer<typeof taskSchema>;
+
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {

@@ -1,3 +1,5 @@
+"use client"
+
 import { Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme-toggle";
@@ -8,10 +10,11 @@ interface HeaderProps {
   onOpenTaskDialog: () => void;
   shifts: Shift[];
   onAddShift: (shift: Omit<Shift, 'id'>) => void;
+  onEditShift: (shift: Shift) => void;
   onDeleteShift: (id: string) => void;
 }
 
-export function Header({ onOpenTaskDialog, shifts, onAddShift, onDeleteShift }: HeaderProps) {
+export function Header({ onOpenTaskDialog, shifts, onAddShift, onEditShift, onDeleteShift }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
@@ -26,7 +29,12 @@ export function Header({ onOpenTaskDialog, shifts, onAddShift, onDeleteShift }: 
             <Plus className="mr-2 h-4 w-4" />
             Add Task
           </Button>
-          <SettingsDialog shifts={shifts} onAddShift={onAddShift} onDeleteShift={onDeleteShift} >
+          <SettingsDialog 
+            shifts={shifts} 
+            onAddShift={onAddShift} 
+            onEditShift={onEditShift}
+            onDeleteShift={onDeleteShift} 
+          >
             <Button variant="ghost" size="icon" aria-label="Settings">
               <Settings className="h-5 w-5" />
             </Button>

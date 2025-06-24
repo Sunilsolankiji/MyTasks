@@ -51,6 +51,10 @@ export default function TaskPage() {
     setShifts(prev => [...prev, newShift]);
   }
 
+  const handleEditShift = (updatedShift: Shift) => {
+    setShifts(prev => prev.map(s => s.id === updatedShift.id ? updatedShift : s));
+  };
+
   const handleDeleteShift = (id: string) => {
     setShifts(prev => prev.filter(s => s.id !== id));
     // Also remove shift from tasks that use it
@@ -76,6 +80,7 @@ export default function TaskPage() {
         onOpenTaskDialog={() => setIsTaskFormOpen(true)}
         shifts={shifts}
         onAddShift={handleAddShift}
+        onEditShift={handleEditShift}
         onDeleteShift={handleDeleteShift}
       />
       <main className="container py-8">

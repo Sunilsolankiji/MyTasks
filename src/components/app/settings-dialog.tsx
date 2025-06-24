@@ -13,7 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-  DialogClose,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -26,7 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Shift } from "@/lib/types";
-import { Trash2, Clock } from "lucide-react";
+import { Trash2, Clock, Pencil } from "lucide-react";
 
 const shiftSchema = z.object({
   name: z.string().min(1, "Shift name is required."),
@@ -38,29 +37,53 @@ interface SettingsDialogProps {
   children: ReactNode;
   shifts: Shift[];
   onAddShift: (shift: Omit<Shift, 'id'>) => void;
+  onEditShift: (shift: Shift) => void;
   onDeleteShift: (id: string) => void;
 }
 
-export function SettingsDialog({ children, shifts, onAddShift, onDeleteShift }: SettingsDialogProps) {
+export function SettingsDialog({ children, shifts, onAddShift, onEditShift, onDeleteShift }: SettingsDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [editingShift, setEditingShift] = useState<Shift | null>(null);
+
   const form = useForm<z.infer<typeof shiftSchema>>({
     resolver: zodResolver(shiftSchema),
     defaultValues: { name: "", startTime: "", endTime: "" },
   });
 
+  const handleCancelEdit = () => {
+    setEditingShift(null);
+    form.reset({ name: "", startTime: "", endTime: "" });
+  };
+
   function onSubmit(values: z.infer<typeof shiftSchema>) {
-    onAddShift(values);
-    form.reset();
+    if (editingShift) {
+      onEditShift({ ...values, id: editingShift.id });
+    } else {
+      onAddShift(values);
+    }
+    handleCancelEdit();
   }
 
+  const handleEditClick = (shift: Shift) => {
+    setEditingShift(shift);
+    form.reset(shift);
+  };
+  
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      handleCancelEdit();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Shift Configuration</DialogTitle>
           <DialogDescription>
-            Manage your work shifts here. Add new shifts or remove existing ones.
+            Manage your work shifts here. Add, edit, or remove existing ones.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -75,9 +98,14 @@ export function SettingsDialog({ children, shifts, onAddShift, onDeleteShift }: 
                       <Clock className="h-3 w-3" /> {shift.startTime} - {shift.endTime}
                     </p>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => onDeleteShift(shift.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center">
+                    <Button variant="ghost" size="icon" onClick={() => handleEditClick(shift)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => onDeleteShift(shift.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
               ))
             ) : (
@@ -85,7 +113,7 @@ export function SettingsDialog({ children, shifts, onAddShift, onDeleteShift }: 
             )}
           </ScrollArea>
           
-          <h3 className="text-sm font-medium pt-4">Add New Shift</h3>
+          <h3 className="text-sm font-medium pt-4">{editingShift ? 'Edit Shift' : 'Add New Shift'}</h3>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -130,7 +158,10 @@ export function SettingsDialog({ children, shifts, onAddShift, onDeleteShift }: 
                 />
               </div>
               <DialogFooter className="pt-4">
-                <Button type="submit">Add Shift</Button>
+                {editingShift && (
+                  <Button type="button" variant="ghost" onClick={handleCancelEdit}>Cancel</Button>
+                )}
+                <Button type="submit">{editingShift ? 'Update Shift' : 'Add Shift'}</Button>
               </DialogFooter>
             </form>
           </Form>
