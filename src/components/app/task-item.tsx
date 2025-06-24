@@ -12,12 +12,11 @@ import { cn } from "@/lib/utils";
 
 interface TaskItemProps {
   task: Task;
-  shift?: Shift;
   onToggleComplete: (id: string, completed: boolean) => void;
   onDelete: (id: string) => void;
 }
 
-export function TaskItem({ task, shift, onToggleComplete, onDelete }: TaskItemProps) {
+export function TaskItem({ task, onToggleComplete, onDelete }: TaskItemProps) {
   return (
     <Card className={cn("transition-all", task.completed && "bg-muted/50")}>
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
@@ -25,7 +24,7 @@ export function TaskItem({ task, shift, onToggleComplete, onDelete }: TaskItemPr
           <Checkbox
             id={`task-${task.id}`}
             checked={task.completed}
-            onCheckedChange={(checked) => onToggleComplete(task.id, !!checked)}
+            onCheckedChange={(checked) => onToggleComplete(task?.id, !!checked)}
             aria-label={`Mark task ${task.title} as ${task.completed ? 'incomplete' : 'complete'}`}
           />
           <CardTitle className={cn("text-lg font-medium", task.completed && "line-through text-muted-foreground")}>

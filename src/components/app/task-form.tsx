@@ -28,39 +28,11 @@ export function TaskForm({ isOpen, onClose, onSubmit, shift }: TaskFormProps) {
     return z.object({
       title: z.string().min(1, "Title is required"),
       date: z.date({ required_error: "A date is required." }),
-      time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "A valid time is required."),
       notes: z.string().optional(),
       attachment: z.any().optional(),
-    }).superRefine((data, ctx) => {
-      if (!shift || !data.time) {
-        return;
-      }
-      const selectedShift = shift;
-      
-      const { startTime, endTime } = selectedShift;
-      const taskTime = data.time;
-
-      const isOvernight = endTime < startTime;
-
-      if (isOvernight) {
-        if (taskTime < startTime && taskTime > endTime) {
-           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `Time must be within shift hours (${startTime} - ${endTime}).`,
-            path: ["time"],
-          });
-        }
-      } else { // Same day shift
-        if (taskTime < startTime || taskTime > endTime) {
-           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `Time must be within shift hours (${startTime} - ${endTime}).`,
-            path: ["time"],
-          });
-        }
-      }
     });
   }, [shift]);
+
 
   type TaskFormValues = z.infer<typeof taskSchema>;
 
@@ -68,7 +40,6 @@ export function TaskForm({ isOpen, onClose, onSubmit, shift }: TaskFormProps) {
     resolver: zodResolver(taskSchema),
     defaultValues: {
       title: "",
-      time: "",
       notes: "",
     },
   });
@@ -141,19 +112,6 @@ export function TaskForm({ isOpen, onClose, onSubmit, shift }: TaskFormProps) {
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Time</FormLabel>
-                    <FormControl>
-                      <Input type="time" {...field} />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

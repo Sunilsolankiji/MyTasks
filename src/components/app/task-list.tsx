@@ -5,12 +5,11 @@ import { TaskItem } from "./task-item";
 
 interface TaskListProps {
   tasks: Task[];
-  shifts: Shift[];
   onToggleComplete: (id: string, completed: boolean) => void;
   onDelete: (id: string) => void;
 }
 
-export function TaskList({ tasks, shifts, onToggleComplete, onDelete }: TaskListProps) {
+export function TaskList({ tasks, onToggleComplete, onDelete }: TaskListProps) {
   if (tasks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 bg-muted/20 p-12 text-center">
@@ -20,15 +19,12 @@ export function TaskList({ tasks, shifts, onToggleComplete, onDelete }: TaskList
     );
   }
 
-  const shiftsMap = new Map(shifts.map(s => [s.id, s]));
-
   return (
     <div className="space-y-4 max-w-2xl mx-auto">
       {tasks.map((task) => (
         <TaskItem
           key={task.id}
           task={task}
-          shift={shiftsMap.get(task.shiftId)}
           onToggleComplete={onToggleComplete}
           onDelete={onDelete}
         />

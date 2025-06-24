@@ -1,12 +1,9 @@
 export interface Task {
-  id: string;
   title: string;
   date: Date;
-  time: string;
-  shiftId: string;
+  completed: boolean;
   notes?: string;
   attachment?: string;
-  completed: boolean;
 }
 
 export interface Shift {

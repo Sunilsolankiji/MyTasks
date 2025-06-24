@@ -3,18 +3,15 @@
 import { Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme-toggle";
-import { SettingsDialog } from "./settings-dialog";
 import type { Shift } from "@/lib/types";
 
 interface HeaderProps {
   onOpenTaskDialog: () => void;
-  shift: Shift;
-  onUpdateShift: (shift: Omit<Shift, 'id'>) => void;
 }
 
-export function Header({ onOpenTaskDialog, shift, onUpdateShift }: HeaderProps) {
+export function Header({ onOpenTaskDialog }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-10 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-10 w-full border-b border-gray-200 backdrop-blur-md bg-white/30 p-4 dark:border-gray-700 dark:bg-gray-800/30">
       <div className="container flex h-14 items-center">
         <div className="mr-4 hidden md:flex">
           <a className="mr-6 flex items-center space-x-2" href="/">
@@ -27,14 +24,7 @@ export function Header({ onOpenTaskDialog, shift, onUpdateShift }: HeaderProps) 
             <Plus className="mr-2 h-4 w-4" />
             Add Task
           </Button>
-          <SettingsDialog 
-            shift={shift} 
-            onUpdateShift={onUpdateShift}
-          >
-            <Button variant="ghost" size="icon" aria-label="Settings">
-              <Settings className="h-5 w-5" />
-            </Button>
-          </SettingsDialog>
+
           <ThemeToggle />
         </div>
       </div>
