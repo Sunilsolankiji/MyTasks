@@ -8,13 +8,11 @@ import type { Shift } from "@/lib/types";
 
 interface HeaderProps {
   onOpenTaskDialog: () => void;
-  shifts: Shift[];
-  onAddShift: (shift: Omit<Shift, 'id'>) => void;
-  onEditShift: (shift: Shift) => void;
-  onDeleteShift: (id: string) => void;
+  shift: Shift;
+  onUpdateShift: (shift: Omit<Shift, 'id'>) => void;
 }
 
-export function Header({ onOpenTaskDialog, shifts, onAddShift, onEditShift, onDeleteShift }: HeaderProps) {
+export function Header({ onOpenTaskDialog, shift, onUpdateShift }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
@@ -30,10 +28,8 @@ export function Header({ onOpenTaskDialog, shifts, onAddShift, onEditShift, onDe
             Add Task
           </Button>
           <SettingsDialog 
-            shifts={shifts} 
-            onAddShift={onAddShift} 
-            onEditShift={onEditShift}
-            onDeleteShift={onDeleteShift} 
+            shift={shift} 
+            onUpdateShift={onUpdateShift}
           >
             <Button variant="ghost" size="icon" aria-label="Settings">
               <Settings className="h-5 w-5" />

@@ -57,7 +57,6 @@ export function TaskItem({ task, shift, onToggleComplete, onDelete }: TaskItemPr
               <Clock className="mr-2 h-4 w-4" />
               <span>{task.time}</span>
             </div>
-            {shift && <Badge variant="outline">{shift.name}</Badge>}
           </div>
           {task.notes && <p className="pt-2">{task.notes}</p>}
           {task.attachment && (

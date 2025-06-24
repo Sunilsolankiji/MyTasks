@@ -13,35 +13,30 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { Task, Shift } from "@/lib/types";
 
 interface TaskFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (task: Omit<Task, 'id' | 'completed'>) => void;
-  shifts: Shift[];
+  onSubmit: (task: Omit<Task, 'id' | 'completed' | 'shiftId'>) => void;
+  shift: Shift;
 }
 
-export function TaskForm({ isOpen, onClose, onSubmit, shifts }: TaskFormProps) {
+export function TaskForm({ isOpen, onClose, onSubmit, shift }: TaskFormProps) {
   const taskSchema = useMemo(() => {
     return z.object({
       title: z.string().min(1, "Title is required"),
       date: z.date({ required_error: "A date is required." }),
       time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "A valid time is required."),
-      shiftId: z.string().min(1, "Please select a shift."),
       notes: z.string().optional(),
       attachment: z.any().optional(),
     }).superRefine((data, ctx) => {
-      if (!data.shiftId || !data.time) {
-        return; // Let other validators handle this.
+      if (!shift || !data.time) {
+        return;
       }
-      const selectedShift = shifts.find(s => s.id === data.shiftId);
-      if (!selectedShift) {
-        return; // Should not happen if form is consistent.
-      }
-
+      const selectedShift = shift;
+      
       const { startTime, endTime } = selectedShift;
       const taskTime = data.time;
 
@@ -65,7 +60,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, shifts }: TaskFormProps) {
         }
       }
     });
-  }, [shifts]);
+  }, [shift]);
 
   type TaskFormValues = z.infer<typeof taskSchema>;
 
@@ -74,7 +69,6 @@ export function TaskForm({ isOpen, onClose, onSubmit, shifts }: TaskFormProps) {
     defaultValues: {
       title: "",
       time: "",
-      shiftId: "",
       notes: "",
     },
   });
@@ -85,9 +79,16 @@ export function TaskForm({ isOpen, onClose, onSubmit, shifts }: TaskFormProps) {
     form.reset();
     onClose();
   };
+  
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      form.reset();
+    }
+    onClose();
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add New Task</DialogTitle>
@@ -158,28 +159,6 @@ export function TaskForm({ isOpen, onClose, onSubmit, shifts }: TaskFormProps) {
                 )}
               />
             </div>
-            <FormField
-              control={form.control}
-              name="shiftId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Shift</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a shift" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {shifts.map((shift) => (
-                        <SelectItem key={shift.id} value={shift.id}>{shift.name} ({shift.startTime} - {shift.endTime})</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="notes"

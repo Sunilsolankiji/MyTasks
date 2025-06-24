@@ -11,7 +11,6 @@ export interface Task {
 
 export interface Shift {
   id: string;
-  name: string;
   startTime: string;
   endTime: string;
 }
