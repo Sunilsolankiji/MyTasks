@@ -57,6 +57,11 @@ export default function TaskPage() {
         return a.time.localeCompare(b.time);
       });
   }, [tasks, searchTerm]);
+  
+  const todayTasks = useMemo(() => {
+    const todayString = new Date().toDateString();
+    return filteredTasks.filter(task => new Date(task.date).toDateString() === todayString);
+  }, [filteredTasks]);
 
   const upcomingTasks = filteredTasks.filter(task => !task.completed);
   const completedTasks = filteredTasks.filter(task => task.completed);
@@ -84,11 +89,20 @@ export default function TaskPage() {
             </div>
         </div>
 
-        <Tabs defaultValue="upcoming">
+        <Tabs defaultValue="today">
           <TabsList>
+            <TabsTrigger value="today">Today</TabsTrigger>
             <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
             <TabsTrigger value="completed">Completed</TabsTrigger>
           </TabsList>
+          <TabsContent value="today" className="pt-6">
+            <TaskList 
+              tasks={todayTasks} 
+              shifts={[shift]}
+              onToggleComplete={handleToggleComplete} 
+              onDelete={handleDeleteTask} 
+            />
+          </TabsContent>
           <TabsContent value="upcoming" className="pt-6">
             <TaskList 
               tasks={upcomingTasks} 
