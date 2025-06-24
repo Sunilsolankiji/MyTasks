@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { Task, Shift } from "@/lib/types";
 import { Header } from "./header";
 import { TaskList } from "./task-list";
@@ -11,7 +11,7 @@ import { Search } from "lucide-react";
 
 const initialShift: Shift = { id: '1', startTime: '09:00', endTime: '17:00' };
 
-const initialTasks: Task[] = [
+const getInitialTasks = (): Task[] => [
   { id: '1', title: 'Morning briefing', date: new Date(), time: '09:30', shiftId: '1', completed: false, notes: 'Discuss Q3 goals.' },
   { id: '2', title: 'Deploy feature branch', date: new Date(), time: '14:00', shiftId: '1', completed: false, attachment: 'deploy-notes.pdf' },
   { id: '3', title: 'System maintenance check', date: new Date(), time: '16:00', shiftId: '1', completed: false },
@@ -19,10 +19,14 @@ const initialTasks: Task[] = [
 ];
 
 export default function TaskPage() {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [shift, setShift] = useState<Shift>(initialShift);
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    setTasks(getInitialTasks());
+  }, []);
 
   const handleAddTask = (newTaskData: Omit<Task, 'id' | 'completed' | 'shiftId'>) => {
     const newTask: Task = {
