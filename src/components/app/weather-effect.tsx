@@ -1,56 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sun, Cloud, CloudRain, CloudSnow, Wind, Zap } from 'lucide-react';
+import { Sun, Cloud, CloudRain, CloudSnow, Zap } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-
-// Types for weather data
-const weatherConditions = ['sunny', 'cloudy', 'rainy', 'snowy', 'windy', 'stormy', 'unknown'] as const;
-type WeatherCondition = (typeof weatherConditions)[number];
-
-interface GetWeatherOutput {
-  condition: WeatherCondition;
-  temperature: number;
-  location: string;
-  description: string;
-}
-
-// Mock weather API call
-async function fetchWeatherFromAPI(location: string): Promise<{ condition: WeatherCondition; temperature: number }> {
-    console.log(`Fetching weather for ${location} (mocked)`);
-    const conditions = ['sunny', 'cloudy', 'rainy', 'snowy', 'windy', 'stormy'] as const;
-    const randomCondition = conditions[Math.floor(Math.random() * conditions.length)];
-    const randomTemp = Math.floor(Math.random() * 35); // Temp between 0 and 34 C
-    return {
-      condition: randomCondition,
-      temperature: randomTemp,
-    };
-}
-
-// Augment the global Window interface for window.ai, which is experimental
-declare global {
-  interface Window {
-    ai?: {
-      canCreateTextSession: () => Promise<'readily' | 'after-permission' | 'no'>;
-      createTextSession: () => Promise<{
-        prompt: (prompt: string) => Promise<string>;
-        destroy: () => void;
-      }>;
-    };
-  }
-}
+import { getWeather, type GetWeatherOutput, type WeatherCondition } from '@/ai/flows/get-weather-flow';
 
 interface WeatherEffectProps {
   location: string;
 }
 
-const weatherIcons = {
+const weatherIcons: Record<WeatherCondition, React.ReactNode> = {
   sunny: <Sun className="h-5 w-5 text-yellow-400" />,
   cloudy: <Cloud className="h-5 w-5 text-gray-400" />,
   rainy: <CloudRain className="h-5 w-5 text-blue-400" />,
   snowy: <CloudSnow className="h-5 w-5 text-white" />,
-  windy: <Wind className="h-5 w-5 text-gray-500" />,
   stormy: <Zap className="h-5 w-5 text-yellow-500" />,
   unknown: <div className="h-5 w-5" />,
 };
@@ -111,27 +75,18 @@ export function WeatherEffect({ location }: WeatherEffectProps) {
     
     const timer = setTimeout(async () => {
         try {
-            const weatherData = await fetchWeatherFromAPI(location);
-            let description: string;
-            const prompt = `The weather in ${location} is ${weatherData.condition} with a temperature of ${weatherData.temperature}°C. Write a short, friendly sentence describing this weather.`;
-
-            if (window.ai && (await window.ai.canCreateTextSession()) === 'readily') {
-                const session = await window.ai.createTextSession();
-                description = await session.prompt(prompt);
-                session.destroy();
-            } else {
-                description = `The weather is ${weatherData.condition} with a temperature of ${weatherData.temperature}°C.`;
-                console.log("On-device AI not available or not permitted. Using a default description.");
-            }
-            
-            setWeather({
-                ...weatherData,
-                location,
-                description,
-            });
+            const weatherData = await getWeather({ location });
+            setWeather(weatherData);
         } catch (e) {
-            console.error("Failed to get weather or generate description:", e);
-            setError("Could not get weather data.");
+            console.error("Failed to get weather:", e);
+            const errorMessage = e instanceof Error ? e.message : "Could not get weather data.";
+            if (errorMessage.includes("key")) {
+                setError("Weather API key not configured.");
+            } else if (errorMessage.includes("Location not found")) {
+                setError("Location not found.");
+            } else {
+                setError("Could not get weather.");
+            }
             setWeather(null);
         } finally {
             setIsLoading(false);
@@ -163,7 +118,7 @@ export function WeatherEffect({ location }: WeatherEffectProps) {
 
   if (error) {
     return (
-      <div className="flex items-center text-sm text-muted-foreground p-2">
+      <div className="flex items-center text-sm text-destructive-foreground bg-destructive/90 p-2 rounded-md">
         {error}
       </div>
     );
