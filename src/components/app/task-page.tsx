@@ -15,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export default function TaskPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -138,7 +140,7 @@ export default function TaskPage() {
           <div className="w-full max-w-4xl">
             <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
               <h1 className="text-3xl font-bold tracking-tight">Your Tasks</h1>
-              <div className="flex gap-2 w-full sm:w-auto flex-wrap justify-end">
+              <div className="flex gap-2 w-full sm:w-auto flex-wrap justify-end items-center">
                 <div className="relative w-full sm:w-auto sm:flex-grow">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -159,15 +161,14 @@ export default function TaskPage() {
                     <SelectItem value="completionDate">Completion Date</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={sortDirection} onValueChange={(value: 'asc' | 'desc') => setSortDirection(value)}>
-                  <SelectTrigger className="w-full sm:w-[120px]">
-                    <SelectValue placeholder="Direction" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="asc">Ascending</SelectItem>
-                    <SelectItem value="desc">Descending</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="sort-direction"
+                    checked={sortDirection === 'desc'}
+                    onCheckedChange={(checked) => setSortDirection(checked ? 'desc' : 'asc')}
+                  />
+                  <Label htmlFor="sort-direction">Descending</Label>
+                </div>
               </div>
             </div>
 
