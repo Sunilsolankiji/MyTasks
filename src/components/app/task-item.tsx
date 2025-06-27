@@ -1,7 +1,7 @@
 "use client"
 
 import { format } from "date-fns";
-import { Calendar, MoreVertical, Paperclip, Trash2, Pencil, Clock, CheckCircle } from "lucide-react";
+import { Calendar, MoreVertical, Paperclip, Trash2, Pencil, Clock, CheckCircle, ChevronsUp, ChevronsDown, Equal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,6 +18,12 @@ interface TaskItemProps {
 }
 
 export function TaskItem({ task, onToggleComplete, onDelete, onEdit }: TaskItemProps) {
+  const priorityIcons = {
+    high: <ChevronsUp className="h-3 w-3" />,
+    medium: <Equal className="h-3 w-3" />,
+    low: <ChevronsDown className="h-3 w-3" />,
+  };
+
   return (
     <Card className={cn("transition-all", task.completed && "bg-muted/50")}>
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
@@ -38,7 +44,10 @@ export function TaskItem({ task, onToggleComplete, onDelete, onEdit }: TaskItemP
             }
             className="capitalize"
           >
-            {task.priority}
+            <div className="flex items-center gap-1">
+              {priorityIcons[task.priority]}
+              <span>{task.priority}</span>
+            </div>
           </Badge>
         </div>
         <DropdownMenu>
