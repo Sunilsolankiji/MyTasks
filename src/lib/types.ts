@@ -6,6 +6,8 @@ export interface Task {
   notes?: string;
   attachment?: string;
   attachmentName?: string;
+  creationDate: Date;
+  completionDate?: Date;
 }
 
 export interface Shift {

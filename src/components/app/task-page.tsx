@@ -23,6 +23,8 @@ export default function TaskPage() {
         setTasks(JSON.parse(storedTasks).map((task: any) => ({
           ...task,
           date: task.date ? new Date(task.date) : undefined,
+          creationDate: task.creationDate ? new Date(task.creationDate) : new Date(),
+          completionDate: task.completionDate ? new Date(task.completionDate) : undefined,
         })));
       }
       setIsLoading(false);
@@ -35,7 +37,7 @@ export default function TaskPage() {
     }
   }, [tasks, isLoading]);
 
-  const handleSaveTask = (taskData: Omit<Task, 'id' | 'completed'>) => {
+  const handleSaveTask = (taskData: Omit<Task, 'id' | 'completed' | 'creationDate' | 'completionDate'>) => {
     if (editingTask) {
       setTasks(tasks.map(t => t.id === editingTask.id ? { ...t, ...taskData } : t));
     } else {
@@ -43,6 +45,7 @@ export default function TaskPage() {
         ...taskData,
         id: Date.now().toString(),
         completed: false,
+        creationDate: new Date(),
       };
       setTasks(prevTasks => [...prevTasks, newTask]);
     }
@@ -60,7 +63,7 @@ export default function TaskPage() {
   };
 
   const handleToggleComplete = (id: string, completed: boolean) => {
-    setTasks(tasks.map(task => task.id === id ? { ...task, completed } : task));
+    setTasks(tasks.map(task => task.id === id ? { ...task, completed, completionDate: completed ? new Date() : undefined } : task));
   };
 
   const handleDeleteTask = (id: string) => {

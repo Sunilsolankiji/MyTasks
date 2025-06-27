@@ -19,7 +19,7 @@ import type { Task } from "@/lib/types";
 interface TaskFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (task: Omit<Task, 'id' | 'completed'>) => void;
+  onSubmit: (task: Omit<Task, 'id' | 'completed' | 'creationDate' | 'completionDate'>) => void;
   task?: Task | null;
 }
 

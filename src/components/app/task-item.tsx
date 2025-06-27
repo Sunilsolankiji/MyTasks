@@ -1,7 +1,7 @@
 "use client"
 
 import { format } from "date-fns";
-import { Calendar, MoreVertical, Paperclip, Trash2, Pencil } from "lucide-react";
+import { Calendar, MoreVertical, Paperclip, Trash2, Pencil, Clock, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -51,12 +51,24 @@ export function TaskItem({ task, onToggleComplete, onDelete, onEdit }: TaskItemP
       </CardHeader>
       <CardContent>
         <div className="space-y-2 pl-9 text-sm text-muted-foreground">
-          <div className="flex items-center gap-4 flex-wrap">
-            {task.date && (
+          <div className="flex flex-col space-y-1 pt-1">
+            {task.creationDate && (
               <div className="flex items-center">
-                <Calendar className="mr-2 h-4 w-4" />
-                <span>{format(task.date, "MMM d, yyyy")}</span>
+                <Clock className="mr-2 h-4 w-4" />
+                <span>Created: {format(new Date(task.creationDate), "PPp")}</span>
               </div>
+            )}
+            {task.date && (
+            <div className="flex items-center">
+                <Calendar className="mr-2 h-4 w-4" />
+                <span>Due: {format(new Date(task.date), "PPP")}</span>
+            </div>
+            )}
+            {task.completed && task.completionDate && (
+            <div className="flex items-center text-primary">
+                <CheckCircle className="mr-2 h-4 w-4" />
+                <span>Completed: {format(new Date(task.completionDate), "PPp")}</span>
+            </div>
             )}
           </div>
           {task.notes && <p className="pt-2">{task.notes}</p>}
