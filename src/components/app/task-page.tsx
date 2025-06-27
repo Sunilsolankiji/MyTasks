@@ -22,7 +22,7 @@ export default function TaskPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [sortKey, setSortKey] = useState<'creationDate' | 'date'>('creationDate');
+  const [sortKey, setSortKey] = useState<'creationDate' | 'date' | 'title' | 'completionDate'>('creationDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
@@ -81,22 +81,30 @@ export default function TaskPage() {
 
   const allTasks = useMemo(() => {
     if (isLoading) return [];
-    return tasks
+    return [...tasks]
       .filter(task =>
         task.title.toLowerCase().includes(searchTerm.toLowerCase())
       )
       .sort((a, b) => {
         const dir = sortDirection === 'asc' ? 1 : -1;
 
-        if (sortKey === 'date') {
-          if (a.date && !b.date) return -1;
-          if (!a.date && b.date) return 1;
-          if (!a.date && !b.date) return 0;
-          return (a.date!.getTime() - b.date!.getTime()) * dir;
+        switch (sortKey) {
+          case 'title':
+            return a.title.localeCompare(b.title) * dir;
+          case 'date':
+            if (a.date && !b.date) return -1 * dir;
+            if (!a.date && b.date) return 1 * dir;
+            if (!a.date && !b.date) return 0;
+            return (a.date!.getTime() - b.date!.getTime()) * dir;
+          case 'completionDate':
+            if (a.completionDate && !b.completionDate) return -1 * dir;
+            if (!a.completionDate && b.completionDate) return 1 * dir;
+            if (!a.completionDate && !b.completionDate) return 0;
+            return (a.completionDate!.getTime() - b.completionDate!.getTime()) * dir;
+          case 'creationDate':
+          default:
+            return (a.creationDate.getTime() - b.creationDate.getTime()) * dir;
         }
-        
-        // Sort by creationDate
-        return (a.creationDate.getTime() - b.creationDate.getTime()) * dir;
       });
   }, [tasks, searchTerm, isLoading, sortKey, sortDirection]);
 
@@ -139,13 +147,15 @@ export default function TaskPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Select value={sortKey} onValueChange={(value: 'creationDate' | 'date') => setSortKey(value)}>
+                <Select value={sortKey} onValueChange={(value: 'creationDate' | 'date' | 'title' | 'completionDate') => setSortKey(value)}>
                   <SelectTrigger className="w-full sm:w-[150px]">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="creationDate">Creation Date</SelectItem>
                     <SelectItem value="date">Due Date</SelectItem>
+                    <SelectItem value="title">Title</SelectItem>
+                    <SelectItem value="completionDate">Completion Date</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={sortDirection} onValueChange={(value: 'asc' | 'desc') => setSortDirection(value)}>
