@@ -190,7 +190,7 @@ export function SettingsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px] flex flex-col max-h-[90vh]">
+      <DialogContent className="sm:max-w-[425px] flex flex-col max-h-[90vh] p-0">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
             <DialogHeader className="p-6 pb-4 flex-shrink-0">
@@ -322,11 +322,11 @@ export function SettingsDialog({
                   <FormLabel>Data Management</FormLabel>
                   <div className="flex gap-2">
                     <Button type="button" variant="outline" className="w-full" onClick={onExportClick}>
-                      <Download className="mr-2 h-4 w-4" />
+                      <Upload className="mr-2 h-4 w-4" />
                       Export
                     </Button>
                     <Button type="button" variant="outline" className="w-full" onClick={handleImportClick}>
-                      <Upload className="mr-2 h-4 w-4" />
+                      <Download className="mr-2 h-4 w-4" />
                       Import
                     </Button>
                     <input 
