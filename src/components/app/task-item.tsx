@@ -1,13 +1,12 @@
 "use client"
 
 import { format } from "date-fns";
-import { Calendar, Clock, MoreVertical, Paperclip, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Calendar, MoreVertical, Paperclip, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import type { Task, Shift } from "@/lib/types";
+import type { Task } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface TaskItemProps {
@@ -48,14 +47,12 @@ export function TaskItem({ task, onToggleComplete, onDelete }: TaskItemProps) {
       <CardContent>
         <div className="space-y-2 pl-9 text-sm text-muted-foreground">
           <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center">
-              <Calendar className="mr-2 h-4 w-4" />
-              <span>{format(task.date, "MMM d, yyyy")}</span>
-            </div>
-            <div className="flex items-center">
-              <Clock className="mr-2 h-4 w-4" />
-              <span>{task.time}</span>
-            </div>
+            {task.date && (
+              <div className="flex items-center">
+                <Calendar className="mr-2 h-4 w-4" />
+                <span>{format(task.date, "MMM d, yyyy")}</span>
+              </div>
+            )}
           </div>
           {task.notes && <p className="pt-2">{task.notes}</p>}
           {task.attachment && (

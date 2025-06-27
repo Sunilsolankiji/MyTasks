@@ -1,6 +1,7 @@
 export interface Task {
+  id: string;
   title: string;
-  date: Date;
+  date?: Date;
   completed: boolean;
   notes?: string;
   attachment?: string;
