@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "../ui/separator";
-import { Upload, Download, MapPin, X } from "lucide-react";
+import { Download, Upload, MapPin, X } from "lucide-react";
 import type { Location } from "@/lib/types";
 import { searchLocations } from "@/services/weather";
 import { useToast } from "@/hooks/use-toast";
@@ -135,7 +135,6 @@ export function SettingsDialog({
           variant: "destructive"
         })
         setSuggestions([]);
-        setShowSuggestions(false);
       } finally {
         setIsSearching(false);
       }
@@ -193,8 +192,8 @@ export function SettingsDialog({
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px] flex flex-col max-h-[90vh]">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <DialogHeader className="p-6 pb-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
+            <DialogHeader className="p-6 pb-4 flex-shrink-0">
               <DialogTitle>Settings</DialogTitle>
               <DialogDescription>
                 Configure your project settings and manage data.
@@ -266,13 +265,12 @@ export function SettingsDialog({
                                     className="pl-9"
                                     onChange={(e) => {
                                         field.onChange(e);
-                                        setIsSearching(true);
                                         handleLocationSearch(e.target.value);
                                     }}
                                     onFocus={() => {
                                         if (field.value) {
                                             handleLocationSearch(field.value)
-                                        } else {
+                                        } else if (suggestions.length > 0) {
                                             setShowSuggestions(true);
                                         }
                                     }}
@@ -324,11 +322,11 @@ export function SettingsDialog({
                   <FormLabel>Data Management</FormLabel>
                   <div className="flex gap-2">
                     <Button type="button" variant="outline" className="w-full" onClick={onExportClick}>
-                      <Upload className="mr-2 h-4 w-4" />
+                      <Download className="mr-2 h-4 w-4" />
                       Export
                     </Button>
                     <Button type="button" variant="outline" className="w-full" onClick={handleImportClick}>
-                      <Download className="mr-2 h-4 w-4" />
+                      <Upload className="mr-2 h-4 w-4" />
                       Import
                     </Button>
                     <input 
@@ -344,7 +342,7 @@ export function SettingsDialog({
               </div>
             </ScrollArea>
 
-            <DialogFooter className="p-6 pt-4 border-t">
+            <DialogFooter className="p-6 pt-4 border-t flex-shrink-0">
               <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
               <Button type="submit">Save Changes</Button>
             </DialogFooter>
