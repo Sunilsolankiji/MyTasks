@@ -61,6 +61,7 @@ export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectNa
   useEffect(() => {
     if (isOpen) {
       form.reset({ projectName, location });
+      setHasSelectedSuggestion(true); // Prevent search on modal open
     }
   }, [projectName, location, isOpen, form]);
 
