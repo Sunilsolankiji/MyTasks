@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { TaskListSkeleton } from "./task-list-skeleton";
 
 export default function TaskPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -81,7 +82,6 @@ export default function TaskPage() {
   };
 
   const allTasks = useMemo(() => {
-    if (isLoading) return [];
     return [...tasks]
       .filter(task =>
         task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -108,28 +108,25 @@ export default function TaskPage() {
             return (a.creationDate.getTime() - b.creationDate.getTime()) * dir;
         }
       });
-  }, [tasks, searchTerm, isLoading, sortKey, sortDirection]);
+  }, [tasks, searchTerm, sortKey, sortDirection]);
 
   const todayTasks = useMemo(() => {
-    if (isLoading) return [];
     const todayString = new Date().toDateString();
     return allTasks.filter(task =>
       task.date && new Date(task.date).toDateString() === todayString && !task.completed
     );
-  }, [allTasks, isLoading]);
+  }, [allTasks]);
 
   const upcomingTasks = useMemo(() => {
-    if (isLoading) return [];
     const todayString = new Date().toDateString();
     return allTasks.filter(task =>
       task.date && !task.completed && new Date(task.date).toDateString() !== todayString
     );
-  }, [allTasks, isLoading]);
+  }, [allTasks]);
 
   const completedTasks = useMemo(() => {
-    if (isLoading) return [];
     return allTasks.filter(task => task.completed);
-  }, [allTasks, isLoading]);
+  }, [allTasks]);
 
   return (
     <div className="min-h-screen w-full bg-background flex flex-col">
@@ -180,31 +177,31 @@ export default function TaskPage() {
                 <TabsTrigger value="completed">Completed</TabsTrigger>
               </TabsList>
               <TabsContent value="today" className="pt-6">
-                <TaskList
+                {isLoading ? <TaskListSkeleton /> : <TaskList
                   tasks={todayTasks}
                   onToggleComplete={handleToggleComplete}
                   onDelete={handleDeleteTask}
                   onEdit={handleOpenEditDialog}
-                />
+                />}
               </TabsContent>
               <TabsContent value="upcoming" className="pt-6">
-                <TaskList
+                {isLoading ? <TaskListSkeleton /> : <TaskList
                   tasks={upcomingTasks}
                   onToggleComplete={handleToggleComplete}
                   onDelete={handleDeleteTask}
                   onEdit={handleOpenEditDialog}
-                />
+                />}
               </TabsContent>
               <TabsContent value="completed" className="pt-6">
-                <TaskList
+                {isLoading ? <TaskListSkeleton /> : <TaskList
                   tasks={completedTasks}
                   onToggleComplete={handleToggleComplete}
                   onDelete={handleDeleteTask}
                   onEdit={handleOpenEditDialog}
-                />
+                />}
               </TabsContent>
               <TabsContent value="all" className="pt-6">
-                {isLoading ? <div>Loading tasks...</div> : <TaskList
+                {isLoading ? <TaskListSkeleton /> : <TaskList
                   tasks={allTasks}
                   onToggleComplete={handleToggleComplete}
                   onDelete={handleDeleteTask}
