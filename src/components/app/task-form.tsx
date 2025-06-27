@@ -1,11 +1,11 @@
 "use client"
 
 import { useMemo, useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Paperclip, X } from "lucide-react";
+import { Calendar as CalendarIcon, Paperclip, X, Plus, Link as LinkIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -36,6 +36,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
       date: z.date().optional(),
       notes: z.string().optional(),
       attachment: z.any().optional(),
+      referenceLinks: z.array(z.string().url({ message: "Please enter a valid URL."}).or(z.literal(""))).optional(),
     });
   }, []);
 
@@ -43,6 +44,11 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "referenceLinks" as any,
   });
 
   useEffect(() => {
@@ -55,6 +61,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
           date: task.date,
           notes: task.notes || "",
           attachment: undefined,
+          referenceLinks: task.referenceLinks || [],
         });
       } else {
         form.reset({
@@ -63,6 +70,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
           date: new Date(),
           notes: "",
           attachment: undefined,
+          referenceLinks: [],
         });
       }
     }
@@ -108,6 +116,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
       notes: data.notes,
       attachment: attachmentDataUrl,
       attachmentName: attachmentName,
+      referenceLinks: data.referenceLinks?.filter(link => link && link.trim() !== '') || [],
     });
     onClose();
   };
@@ -275,6 +284,42 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
                 </FormItem>
               )}
             />
+            <FormItem>
+              <FormLabel>Reference Links</FormLabel>
+              <div className="space-y-2">
+                {fields.map((field, index) => (
+                  <div key={field.id} className="flex items-center gap-2">
+                    <LinkIcon className="h-4 w-4 text-muted-foreground" />
+                    <FormField
+                      control={form.control}
+                      name={`referenceLinks.${index}`}
+                      render={({ field }) => (
+                        <FormItem className="flex-grow">
+                          <FormControl>
+                            <Input placeholder="https://example.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                      <X className="h-4 w-4" />
+                      <span className="sr-only">Remove link</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={() => append("")}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Link
+              </Button>
+            </FormItem>
             <DialogFooter className="pt-4">
               <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
               <Button type="submit">{isEditMode ? 'Save Changes' : 'Add Task'}</Button>

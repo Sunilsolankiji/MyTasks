@@ -1,7 +1,7 @@
 "use client"
 
 import { format } from "date-fns";
-import { Calendar, MoreVertical, Paperclip, Trash2, Pencil, Clock, CheckCircle, ChevronsUp, ChevronsDown, Equal } from "lucide-react";
+import { Calendar, MoreVertical, Paperclip, Trash2, Pencil, Clock, CheckCircle, ChevronsUp, ChevronsDown, Equal, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -89,6 +89,24 @@ export function TaskItem({ task, onToggleComplete, onDelete, onEdit }: TaskItemP
                         {task.attachmentName}
                     </a>
                     </div>
+                )}
+                {task.referenceLinks && task.referenceLinks.length > 0 && (
+                  <div className="pt-2 space-y-1">
+                    {task.referenceLinks.map((link, index) => (
+                      <div key={index} className="flex items-center text-primary">
+                        <Link className="mr-2 h-4 w-4 flex-shrink-0" />
+                        <a
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline truncate"
+                          title={link}
+                        >
+                          {link}
+                        </a>
+                      </div>
+                    ))}
+                  </div>
                 )}
             </div>
 

@@ -11,4 +11,5 @@ export interface Task {
   creationDate: Date;
   completionDate?: Date;
   priority: Priority;
+  referenceLinks?: string[];
 }

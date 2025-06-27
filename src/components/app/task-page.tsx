@@ -42,6 +42,7 @@ export default function TaskPage() {
           date: task.date ? new Date(task.date) : undefined,
           creationDate: task.creationDate ? new Date(task.creationDate) : new Date(),
           completionDate: task.completionDate ? new Date(task.completionDate) : undefined,
+          referenceLinks: task.referenceLinks || [],
         })));
       }
       
