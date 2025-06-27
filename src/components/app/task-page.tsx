@@ -38,6 +38,17 @@ export default function TaskPage() {
           completionDate: task.completionDate ? new Date(task.completionDate) : undefined,
         })));
       }
+      
+      const storedSortKey = localStorage.getItem("sortKey");
+      if (storedSortKey) {
+        setSortKey(storedSortKey as any);
+      }
+      
+      const storedSortDirection = localStorage.getItem("sortDirection");
+      if (storedSortDirection) {
+        setSortDirection(storedSortDirection as 'asc' | 'desc');
+      }
+
       setIsLoading(false);
     }
   }, []);
@@ -47,6 +58,13 @@ export default function TaskPage() {
       localStorage.setItem("tasks", JSON.stringify(tasks));
     }
   }, [tasks, isLoading]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isLoading) {
+      localStorage.setItem("sortKey", sortKey);
+      localStorage.setItem("sortDirection", sortDirection);
+    }
+  }, [sortKey, sortDirection, isLoading]);
 
   const handleSaveTask = (taskData: Omit<Task, 'id' | 'completed' | 'creationDate' | 'completionDate'>) => {
     if (editingTask) {
