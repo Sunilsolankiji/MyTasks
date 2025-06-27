@@ -73,18 +73,18 @@ export function TaskItem({ task, onToggleComplete, onDelete, onEdit }: TaskItemP
                 )}
             </div>
 
-            <div className="flex justify-end items-center space-x-4 pt-4 text-xs text-muted-foreground">
+            <div className="flex justify-between items-center pt-4 text-xs text-muted-foreground">
+                {task.completed && task.completionDate ? (
+                    <div className="flex items-center text-primary">
+                        <CheckCircle className="mr-1.5 h-3 w-3" />
+                        <span>Completed: {format(new Date(task.completionDate), "PPp")}</span>
+                    </div>
+                ) : <div />}
                 {task.creationDate && (
-                <div className="flex items-center">
-                    <Clock className="mr-1.5 h-3 w-3" />
-                    <span>Created: {format(new Date(task.creationDate), "PPp")}</span>
-                </div>
-                )}
-                {task.completed && task.completionDate && (
-                <div className="flex items-center text-primary">
-                    <CheckCircle className="mr-1.5 h-3 w-3" />
-                    <span>Completed: {format(new Date(task.completionDate), "PPp")}</span>
-                </div>
+                    <div className="flex items-center">
+                        <Clock className="mr-1.5 h-3 w-3" />
+                        <span>Created: {format(new Date(task.creationDate), "PPp")}</span>
+                    </div>
                 )}
             </div>
         </div>
