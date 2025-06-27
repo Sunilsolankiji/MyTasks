@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
-import type { Task } from "@/lib/types";
+import type { Task, Shift } from "@/lib/types";
 import { Header } from "./header";
 import { TaskForm } from "./task-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { TaskListSkeleton } from "./task-list-skeleton";
+import { SettingsDialog } from "./settings-dialog";
 
 export default function TaskPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -26,6 +27,9 @@ export default function TaskPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [sortKey, setSortKey] = useState<'creationDate' | 'date' | 'title' | 'completionDate'>('creationDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [projectName, setProjectName] = useState('MyTasks');
+  const [shift, setShift] = useState<Shift>({ id: '1', startTime: '09:00', endTime: '17:00' });
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -49,6 +53,16 @@ export default function TaskPage() {
         setSortDirection(storedSortDirection as 'asc' | 'desc');
       }
 
+      const storedProjectName = localStorage.getItem("projectName");
+      if (storedProjectName) {
+        setProjectName(JSON.parse(storedProjectName));
+      }
+      
+      const storedShift = localStorage.getItem("shift");
+      if (storedShift) {
+        setShift(JSON.parse(storedShift));
+      }
+
       setIsLoading(false);
     }
   }, []);
@@ -65,6 +79,18 @@ export default function TaskPage() {
       localStorage.setItem("sortDirection", sortDirection);
     }
   }, [sortKey, sortDirection, isLoading]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isLoading) {
+      localStorage.setItem("projectName", JSON.stringify(projectName));
+    }
+  }, [projectName, isLoading]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isLoading) {
+      localStorage.setItem("shift", JSON.stringify(shift));
+    }
+  }, [shift, isLoading]);
 
   const handleSaveTask = (taskData: Omit<Task, 'id' | 'completed' | 'creationDate' | 'completionDate'>) => {
     if (editingTask) {
@@ -97,6 +123,14 @@ export default function TaskPage() {
 
   const handleDeleteTask = (id: string) => {
     setTasks(tasks.filter(task => task.id !== id));
+  };
+
+  const handleUpdateProjectName = (name: string) => {
+    setProjectName(name);
+  };
+  
+  const handleUpdateShift = (updatedShift: Omit<Shift, 'id'>) => {
+    setShift(prev => ({...prev, ...updatedShift}));
   };
 
   const allTasks = useMemo(() => {
@@ -148,7 +182,11 @@ export default function TaskPage() {
 
   return (
     <div className="min-h-screen w-full bg-background flex flex-col">
-      <Header onOpenTaskDialog={() => setIsTaskFormOpen(true)} />
+      <Header 
+        projectName={projectName}
+        onOpenTaskDialog={() => setIsTaskFormOpen(true)}
+        onOpenSettingsDialog={() => setIsSettingsOpen(true)}
+      />
       <main className="flex-1 w-full">
         <div className="container mx-auto py-8 px-4 flex flex-col items-center">
           <div className="w-full max-w-4xl">
@@ -235,6 +273,14 @@ export default function TaskPage() {
         onClose={handleCloseTaskForm}
         onSubmit={handleSaveTask}
         task={editingTask}
+      />
+      <SettingsDialog
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        shift={shift}
+        onUpdateShift={handleUpdateShift}
+        projectName={projectName}
+        onUpdateProjectName={handleUpdateProjectName}
       />
     </div>
   );

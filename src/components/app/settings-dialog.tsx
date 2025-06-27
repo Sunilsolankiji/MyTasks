@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type ReactNode, useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,7 +11,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -25,48 +24,69 @@ import {
 import { Input } from "@/components/ui/input";
 import type { Shift } from "@/lib/types";
 
-const shiftSchema = z.object({
+const settingsSchema = z.object({
+  projectName: z.string().min(1, "Project name is required."),
   startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM)."),
   endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM)."),
 });
 
 interface SettingsDialogProps {
-  children: ReactNode;
+  isOpen: boolean;
+  onClose: () => void;
   shift: Shift;
   onUpdateShift: (shift: Omit<Shift, 'id'>) => void;
+  projectName: string;
+  onUpdateProjectName: (name: string) => void;
 }
 
-export function SettingsDialog({ children, shift, onUpdateShift }: SettingsDialogProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const form = useForm<z.infer<typeof shiftSchema>>({
-    resolver: zodResolver(shiftSchema),
-    defaultValues: { startTime: shift.startTime, endTime: shift.endTime },
+export function SettingsDialog({ isOpen, onClose, shift, onUpdateShift, projectName, onUpdateProjectName }: SettingsDialogProps) {
+  const form = useForm<z.infer<typeof settingsSchema>>({
+    resolver: zodResolver(settingsSchema),
+    defaultValues: { projectName, startTime: shift.startTime, endTime: shift.endTime },
   });
   
   useEffect(() => {
-    if (shift) {
-      form.reset({ startTime: shift.startTime, endTime: shift.endTime });
+    if (isOpen) {
+      form.reset({ projectName, startTime: shift.startTime, endTime: shift.endTime });
     }
-  }, [shift, form, isOpen]);
+  }, [projectName, shift, isOpen, form]);
 
-  function onSubmit(values: z.infer<typeof shiftSchema>) {
-    onUpdateShift(values);
-    setIsOpen(false);
+  function onSubmit(values: z.infer<typeof settingsSchema>) {
+    onUpdateProjectName(values.projectName);
+    onUpdateShift({ startTime: values.startTime, endTime: values.endTime });
+    onClose();
   }
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Shift Configuration</DialogTitle>
+          <DialogTitle>Settings</DialogTitle>
           <DialogDescription>
-            Configure your work shift start and end times.
+            Configure your project and shift settings.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+             <FormField
+                control={form.control}
+                name="projectName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Project Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -96,7 +116,7 @@ export function SettingsDialog({ children, shift, onUpdateShift }: SettingsDialo
               />
             </div>
             <DialogFooter className="pt-4">
-               <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>Cancel</Button>
+               <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
               <Button type="submit">Save Changes</Button>
             </DialogFooter>
           </form>
