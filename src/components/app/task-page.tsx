@@ -334,9 +334,9 @@ export default function TaskPage() {
         onOpenSettingsDialog={() => setIsSettingsOpen(true)}
       />
       <main className="flex-1 w-full">
-        <div className="container mx-auto py-8 px-4 flex flex-col items-center">
-          <div className="w-full max-w-4xl">
-            <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
+        <div className="sticky top-14 z-10 border-b bg-background/95 backdrop-blur-sm">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center py-4">
               <div className="flex-1">
                 <h1 className="text-3xl font-bold tracking-tight">Your Tasks</h1>
               </div>
@@ -374,7 +374,11 @@ export default function TaskPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
 
+        <div className="container mx-auto py-8 px-4 flex flex-col items-center">
+          <div className="w-full max-w-4xl">
             <div className="rounded-lg border bg-background/80 backdrop-blur-sm shadow-sm relative overflow-hidden">
                <WeatherEffect location={location} />
               <div className="p-6">
