@@ -10,12 +10,14 @@ export function useOnDeviceAI() {
   useEffect(() => {
     async function checkAI() {
       if (typeof window === 'undefined' || !window.ai || !window.ai.canCreateTextSession) {
+        console.log("On-device AI not supported by this browser.");
         setAiState('unsupported');
         return;
       }
       
       try {
         const state = await window.ai.canCreateTextSession();
+        console.log("On-device AI availability state:", state);
         if (state === 'readily') {
           setAiState('ready');
         } else {
