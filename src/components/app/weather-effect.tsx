@@ -2,9 +2,44 @@
 
 import { useState, useEffect } from 'react';
 import { Sun, Cloud, CloudRain, CloudSnow, Wind, Zap } from 'lucide-react';
-import { type GetWeatherOutput, getWeather } from '@/ai/flows/weather-flow';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+// Types for weather data
+const weatherConditions = ['sunny', 'cloudy', 'rainy', 'snowy', 'windy', 'stormy', 'unknown'] as const;
+type WeatherCondition = (typeof weatherConditions)[number];
+
+interface GetWeatherOutput {
+  condition: WeatherCondition;
+  temperature: number;
+  location: string;
+  description: string;
+}
+
+// Mock weather API call
+async function fetchWeatherFromAPI(location: string): Promise<{ condition: WeatherCondition; temperature: number }> {
+    console.log(`Fetching weather for ${location} (mocked)`);
+    const conditions = ['sunny', 'cloudy', 'rainy', 'snowy', 'windy', 'stormy'] as const;
+    const randomCondition = conditions[Math.floor(Math.random() * conditions.length)];
+    const randomTemp = Math.floor(Math.random() * 35); // Temp between 0 and 34 C
+    return {
+      condition: randomCondition,
+      temperature: randomTemp,
+    };
+}
+
+// Augment the global Window interface for window.ai, which is experimental
+declare global {
+  interface Window {
+    ai?: {
+      canCreateTextSession: () => Promise<'readily' | 'after-permission' | 'no'>;
+      createTextSession: () => Promise<{
+        prompt: (prompt: string) => Promise<string>;
+        destroy: () => void;
+      }>;
+    };
+  }
+}
 
 interface WeatherEffectProps {
   location: string;
@@ -61,20 +96,46 @@ const Snow = () => (
 export function WeatherEffect({ location }: WeatherEffectProps) {
   const [weather, setWeather] = useState<GetWeatherOutput | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!location) {
         setIsLoading(false);
         setWeather(null);
+        setError(null);
         return;
     };
 
     setIsLoading(true);
-    const timer = setTimeout(() => {
-        getWeather({ location })
-        .then(setWeather)
-        .catch(console.error)
-        .finally(() => setIsLoading(false));
+    setError(null);
+    
+    const timer = setTimeout(async () => {
+        try {
+            const weatherData = await fetchWeatherFromAPI(location);
+            let description: string;
+            const prompt = `The weather in ${location} is ${weatherData.condition} with a temperature of ${weatherData.temperature}°C. Write a short, friendly sentence describing this weather.`;
+
+            if (window.ai && (await window.ai.canCreateTextSession()) === 'readily') {
+                const session = await window.ai.createTextSession();
+                description = await session.prompt(prompt);
+                session.destroy();
+            } else {
+                description = `The weather is ${weatherData.condition} with a temperature of ${weatherData.temperature}°C.`;
+                console.log("On-device AI not available or not permitted. Using a default description.");
+            }
+            
+            setWeather({
+                ...weatherData,
+                location,
+                description,
+            });
+        } catch (e) {
+            console.error("Failed to get weather or generate description:", e);
+            setError("Could not get weather data.");
+            setWeather(null);
+        } finally {
+            setIsLoading(false);
+        }
     }, 500); // Debounce API calls
 
     return () => clearTimeout(timer);
@@ -92,7 +153,6 @@ export function WeatherEffect({ location }: WeatherEffectProps) {
     }
   };
 
-
   if (!location) {
     return null;
   }
@@ -101,12 +161,16 @@ export function WeatherEffect({ location }: WeatherEffectProps) {
     return <Skeleton className="h-10 w-48" />;
   }
 
-  if (!weather) {
+  if (error) {
     return (
-      <div className="flex items-center text-sm text-muted-foreground">
-        Could not fetch weather.
+      <div className="flex items-center text-sm text-muted-foreground p-2">
+        {error}
       </div>
     );
+  }
+
+  if (!weather) {
+    return null;
   }
 
   return (
