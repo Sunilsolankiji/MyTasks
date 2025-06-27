@@ -335,7 +335,7 @@ export default function TaskPage() {
       />
       <main className="flex-1 w-full">
         <Tabs defaultValue="all">
-          <div className="sticky top-14 z-10 border-b border-gray-200 bg-white/30 backdrop-blur-md dark:border-gray-700 dark:bg-gray-800/30">
+          <div className="sticky top-20 z-10 border-b border-gray-200 bg-white/30 backdrop-blur-md dark:border-gray-700 dark:bg-gray-800/30">
             <div className="container mx-auto px-4 py-4">
               <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
                 <div className="flex-1">
