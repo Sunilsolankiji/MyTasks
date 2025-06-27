@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "../ui/separator";
-import { Download, Upload, MapPin, X } from "lucide-react";
+import { Upload, Download, MapPin, X } from "lucide-react";
 import type { Location } from "@/lib/types";
 import { searchLocations } from "@/services/weather";
 import { useToast } from "@/hooks/use-toast";
@@ -118,7 +118,6 @@ export function SettingsDialog({
     if (!query) {
       setSuggestions([]);
       setShowSuggestions(false);
-      setIsSearching(false);
       return;
     }
     
@@ -192,160 +191,158 @@ export function SettingsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px] p-0 flex flex-col max-h-[90vh]">
+      <DialogContent className="sm:max-w-[425px] flex flex-col max-h-[90vh]">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0">
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader className="p-6 pb-4">
               <DialogTitle>Settings</DialogTitle>
               <DialogDescription>
                 Configure your project settings and manage data.
               </DialogDescription>
             </DialogHeader>
-            
-            <div className="flex-1 min-h-0">
-              <ScrollArea className="h-full px-6">
-                <div className="space-y-6 py-4">
+            <ScrollArea className="flex-1 px-6">
+              <div className="space-y-6 py-4">
+                <FormField
+                  control={form.control}
+                  name="projectName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Project Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Separator />
+                
+                <div className="space-y-4 rounded-lg border p-4">
                   <FormField
                     control={form.control}
-                    name="projectName"
+                    name="showWeatherWidget"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Project Name</FormLabel>
+                      <FormItem className="flex flex-row items-center justify-between">
+                        <div className="space-y-0.5">
+                          <FormLabel>Show Weather Widget</FormLabel>
+                          <p className="text-[0.8rem] text-muted-foreground">
+                              Display current weather and effects.
+                          </p>
+                        </div>
                         <FormControl>
-                          <Input {...field} />
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            aria-label="Toggle weather widget"
+                          />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
-
-                  <Separator />
                   
-                  <div className="space-y-4 rounded-lg border p-4">
-                    <FormField
-                      control={form.control}
-                      name="showWeatherWidget"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between">
-                          <div className="space-y-0.5">
-                            <FormLabel>Show Weather Widget</FormLabel>
-                            <p className="text-[0.8rem] text-muted-foreground">
-                                Display current weather and effects.
-                            </p>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                              aria-label="Toggle weather widget"
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    {watchedShowWeather && (
-                      <div className="space-y-2 pt-4 border-t">
-                        <FormLabel>Weather Location</FormLabel>
-                        <div 
-                          className="relative"
-                          onBlur={(e) => {
-                            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
-                              setShowSuggestions(false);
-                            }
-                          }}
-                        >
-                          <FormField
-                            control={form.control}
-                            name="location"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <div className="relative">
-                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input 
-                                      {...field}
-                                      placeholder="Search for a city..."
-                                      className="pl-9"
-                                      onChange={(e) => {
-                                          field.onChange(e);
-                                          handleLocationSearch(e.target.value);
-                                      }}
-                                      onFocus={() => {
-                                          if (field.value) {
-                                              handleLocationSearch(field.value)
-                                          } else {
-                                              setShowSuggestions(true);
-                                          }
-                                      }}
-                                      autoComplete="off"
-                                    />
-                                    {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4" />}
-                                    {internalLocation && !isSearching && (
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                                            onClick={handleClearLocation}
-                                        >
-                                            <X className="h-4 w-4" />
-                                            <span className="sr-only">Clear location</span>
-                                        </Button>
-                                    )}
-                                  </div>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          {showSuggestions && suggestions.length > 0 && (
-                            <div ref={suggestionsRef} className="absolute z-10 w-full bg-background border rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
-                              {suggestions.map((suggestion) => (
-                                <button
-                                  type="button"
-                                  key={suggestion.id}
-                                  className="w-full text-left px-3 py-2 text-sm hover:bg-accent"
-                                  onClick={() => handleSuggestionClick(suggestion)}
-                                >
-                                  {suggestion.name}, {suggestion.country}
-                                </button>
-                              ))}
-                            </div>
+                  {watchedShowWeather && (
+                    <div className="space-y-2 pt-4 border-t">
+                      <FormLabel>Weather Location</FormLabel>
+                      <div 
+                        className="relative"
+                        onBlur={(e) => {
+                          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+                            setShowSuggestions(false);
+                          }
+                        }}
+                      >
+                        <FormField
+                          control={form.control}
+                          name="location"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <div className="relative">
+                                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                  <Input 
+                                    {...field}
+                                    placeholder="Search for a city..."
+                                    className="pl-9"
+                                    onChange={(e) => {
+                                        field.onChange(e);
+                                        setIsSearching(true);
+                                        handleLocationSearch(e.target.value);
+                                    }}
+                                    onFocus={() => {
+                                        if (field.value) {
+                                            handleLocationSearch(field.value)
+                                        } else {
+                                            setShowSuggestions(true);
+                                        }
+                                    }}
+                                    autoComplete="off"
+                                  />
+                                  {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4" />}
+                                  {internalLocation && !isSearching && (
+                                      <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="icon"
+                                          className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                                          onClick={handleClearLocation}
+                                      >
+                                          <X className="h-4 w-4" />
+                                          <span className="sr-only">Clear location</span>
+                                      </Button>
+                                  )}
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
                           )}
-                        </div>
+                        />
+
+                        {showSuggestions && suggestions.length > 0 && (
+                          <div ref={suggestionsRef} className="absolute z-10 w-full bg-background border rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                            {suggestions.map((suggestion) => (
+                              <button
+                                type="button"
+                                key={suggestion.id}
+                                className="w-full text-left px-3 py-2 text-sm hover:bg-accent"
+                                onClick={() => handleSuggestionClick(suggestion)}
+                              >
+                                {suggestion.name}, {suggestion.country}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-
-
-                  <Separator />
-
-                  <div className="space-y-2">
-                    <FormLabel>Data Management</FormLabel>
-                    <div className="flex gap-2">
-                      <Button type="button" variant="outline" className="w-full" onClick={onExportClick}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Export
-                      </Button>
-                      <Button type="button" variant="outline" className="w-full" onClick={handleImportClick}>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Import
-                      </Button>
-                      <input 
-                        type="file"
-                        ref={fileInputRef}
-                        className="hidden"
-                        accept=".json"
-                        onChange={handleFileChange}
-                      />
                     </div>
-                    <p className="text-xs text-muted-foreground">Select tasks to import or export.</p>
-                  </div>
+                  )}
                 </div>
-              </ScrollArea>
-            </div>
+
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <FormLabel>Data Management</FormLabel>
+                  <div className="flex gap-2">
+                    <Button type="button" variant="outline" className="w-full" onClick={onExportClick}>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Export
+                    </Button>
+                    <Button type="button" variant="outline" className="w-full" onClick={handleImportClick}>
+                      <Download className="mr-2 h-4 w-4" />
+                      Import
+                    </Button>
+                    <input 
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept=".json"
+                      onChange={handleFileChange}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">Select tasks to import or export.</p>
+                </div>
+              </div>
+            </ScrollArea>
 
             <DialogFooter className="p-6 pt-4 border-t">
               <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
