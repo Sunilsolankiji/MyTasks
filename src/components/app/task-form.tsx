@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useMemo, useState, useEffect } from "react";
@@ -34,6 +35,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
   const { toast } = useToast();
   const { aiState } = useOnDeviceAI();
   const [isRewriting, setIsRewriting] = useState(false);
+  const [isRewritingNotes, setIsRewritingNotes] = useState(false);
 
   const taskSchema = useMemo(() => {
     return z.object({
@@ -61,6 +63,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
     if (isOpen) {
       setAttachmentRemoved(false);
       setIsRewriting(false);
+      setIsRewritingNotes(false);
       if (task) {
         form.reset({
           title: task.title,
@@ -108,6 +111,34 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
       })
     } finally {
       setIsRewriting(false);
+    }
+  };
+  
+  const handleRewriteNotes = async () => {
+    if (aiState !== 'ready' || isRewritingNotes) return;
+
+    const currentNotes = form.getValues('notes');
+    if (!currentNotes || !currentNotes.trim()) {
+      return;
+    }
+
+    setIsRewritingNotes(true);
+    try {
+      const session = await window.ai.createTextSession();
+      const prompt = `Rewrite the following notes for a task to be more clear, structured, and concise. You can use bullet points or numbered lists if appropriate. Only return the rewritten notes, without any extra text or quotation marks.\n\nOriginal notes: "${currentNotes}"\n\nRewritten notes:`;
+      const result = await session.prompt(prompt);
+
+      form.setValue('notes', result.trim(), { shouldValidate: true });
+      session.destroy();
+    } catch (e) {
+      console.error("Failed to rewrite notes:", e);
+      toast({
+        title: "AI Rewrite Failed",
+        description: "Could not generate new notes. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsRewritingNotes(false);
     }
   };
 
@@ -291,7 +322,31 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
                     <FormItem>
                       <FormLabel>Notes</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Add any relevant notes..." className="resize-none" {...field} />
+                        <div className="relative">
+                          <Textarea 
+                            placeholder="Add any relevant notes..." 
+                            className="resize-none pr-10" 
+                            {...field} 
+                          />
+                          {aiState === 'ready' && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1.5 h-8 w-8"
+                                onClick={handleRewriteNotes}
+                                disabled={isRewritingNotes || !field.value}
+                                title="Rewrite with AI"
+                            >
+                                {isRewritingNotes ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Sparkles className="h-4 w-4" />
+                                )}
+                                <span className="sr-only">Rewrite with AI</span>
+                            </Button>
+                          )}
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
