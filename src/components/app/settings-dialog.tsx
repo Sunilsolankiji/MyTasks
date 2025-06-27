@@ -28,7 +28,6 @@ import type { Location } from "@/lib/types";
 import { searchLocations } from "@/services/weather";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "../ui/switch";
-import { ScrollArea } from "../ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 const settingsSchema = z.object({
@@ -118,6 +117,7 @@ export function SettingsDialog({
     if (!query) {
       setSuggestions([]);
       setShowSuggestions(false);
+      setIsSearching(false);
       return;
     }
     
@@ -190,16 +190,16 @@ export function SettingsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px] flex flex-col max-h-[90vh] p-0">
+      <DialogContent className="sm:max-w-[425px] p-0">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
-            <DialogHeader className="p-6 pb-4 flex-shrink-0">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col max-h-[90vh]">
+            <DialogHeader className="p-6 pb-4">
               <DialogTitle>Settings</DialogTitle>
               <DialogDescription>
                 Configure your project settings and manage data.
               </DialogDescription>
             </DialogHeader>
-            <ScrollArea className="flex-1 px-6">
+            <div className="flex-1 overflow-y-auto px-6">
               <div className="space-y-6 py-4">
                 <FormField
                   control={form.control}
@@ -276,7 +276,7 @@ export function SettingsDialog({
                                     }}
                                     autoComplete="off"
                                   />
-                                  {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4" />}
+                                  {isSearching && <Loader2 className="absolute right-9 top-1/2 -translate-y-1/2 h-4 w-4" />}
                                   {internalLocation && !isSearching && (
                                       <Button
                                           type="button"
@@ -340,9 +340,9 @@ export function SettingsDialog({
                   <p className="text-xs text-muted-foreground">Select tasks to import or export.</p>
                 </div>
               </div>
-            </ScrollArea>
+            </div>
 
-            <DialogFooter className="p-6 pt-4 border-t flex-shrink-0">
+            <DialogFooter className="p-6 pt-4 border-t">
               <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
               <Button type="submit">Save Changes</Button>
             </DialogFooter>
