@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -23,6 +23,8 @@ interface TaskFormProps {
 }
 
 export function TaskForm({ isOpen, onClose, onSubmit }: TaskFormProps) {
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
   const taskSchema = useMemo(() => {
     return z.object({
       title: z.string().min(1, "Title is required"),
@@ -86,7 +88,7 @@ export function TaskForm({ isOpen, onClose, onSubmit }: TaskFormProps) {
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Date (Optional)</FormLabel>
-                  <Popover>
+                  <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -105,7 +107,10 @@ export function TaskForm({ isOpen, onClose, onSubmit }: TaskFormProps) {
                       <Calendar
                         mode="single"
                         selected={field.value}
-                        onSelect={field.onChange}
+                        onSelect={(date) => {
+                          field.onChange(date);
+                          setIsDatePickerOpen(false);
+                        }}
                         disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
                         initialFocus
                       />
