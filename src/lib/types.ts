@@ -9,9 +9,3 @@ export interface Task {
   creationDate: Date;
   completionDate?: Date;
 }
-
-export interface Shift {
-  id: string;
-  startTime: string;
-  endTime: string;
-}

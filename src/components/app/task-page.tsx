@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
-import type { Task, Shift } from "@/lib/types";
+import type { Task } from "@/lib/types";
 import { Header } from "./header";
 import { TaskForm } from "./task-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,7 +28,6 @@ export default function TaskPage() {
   const [sortKey, setSortKey] = useState<'creationDate' | 'date' | 'title' | 'completionDate'>('creationDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [projectName, setProjectName] = useState('My Tasks');
-  const [shift, setShift] = useState<Shift>({ id: '1', startTime: '09:00', endTime: '17:00' });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
@@ -58,11 +57,6 @@ export default function TaskPage() {
         setProjectName(JSON.parse(storedProjectName));
       }
       
-      const storedShift = localStorage.getItem("shift");
-      if (storedShift) {
-        setShift(JSON.parse(storedShift));
-      }
-
       setIsLoading(false);
     }
   }, []);
@@ -85,12 +79,6 @@ export default function TaskPage() {
       localStorage.setItem("projectName", JSON.stringify(projectName));
     }
   }, [projectName, isLoading]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !isLoading) {
-      localStorage.setItem("shift", JSON.stringify(shift));
-    }
-  }, [shift, isLoading]);
 
   const handleSaveTask = (taskData: Omit<Task, 'id' | 'completed' | 'creationDate' | 'completionDate'>) => {
     if (editingTask) {
@@ -127,10 +115,6 @@ export default function TaskPage() {
 
   const handleUpdateProjectName = (name: string) => {
     setProjectName(name);
-  };
-  
-  const handleUpdateShift = (updatedShift: Omit<Shift, 'id'>) => {
-    setShift(prev => ({...prev, ...updatedShift}));
   };
 
   const allTasks = useMemo(() => {
@@ -277,8 +261,6 @@ export default function TaskPage() {
       <SettingsDialog
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        shift={shift}
-        onUpdateShift={handleUpdateShift}
         projectName={projectName}
         onUpdateProjectName={handleUpdateProjectName}
       />
