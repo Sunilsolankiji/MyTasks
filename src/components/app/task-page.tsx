@@ -6,7 +6,7 @@ import { Header } from "./header";
 import { TaskForm } from "./task-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Search, ArrowUp, ArrowDown } from "lucide-react";
+import { Search, ArrowUp, ArrowDown, ListFilter } from "lucide-react";
 import { TaskList } from "./task-list";
 import {
   Select,
@@ -151,15 +151,18 @@ export default function TaskPage() {
                 </div>
                 <div className="flex items-center gap-2">
                     <Select value={sortKey} onValueChange={(value: 'creationDate' | 'date' | 'title' | 'completionDate') => setSortKey(value)}>
-                    <SelectTrigger className="w-full sm:w-[150px]">
-                        <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="creationDate">Creation Date</SelectItem>
-                        <SelectItem value="date">Due Date</SelectItem>
-                        <SelectItem value="title">Title</SelectItem>
-                        <SelectItem value="completionDate">Completion Date</SelectItem>
-                    </SelectContent>
+                      <SelectTrigger className="w-full sm:w-auto">
+                        <div className="flex items-center gap-1.5">
+                            <ListFilter className="h-3.5 w-3.5" />
+                            <SelectValue placeholder="Sort by" />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="creationDate">Creation Date</SelectItem>
+                          <SelectItem value="date">Due Date</SelectItem>
+                          <SelectItem value="title">Title</SelectItem>
+                          <SelectItem value="completionDate">Completion Date</SelectItem>
+                      </SelectContent>
                     </Select>
                     <Button variant="outline" size="icon" onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}>
                         {sortDirection === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
