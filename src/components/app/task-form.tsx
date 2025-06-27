@@ -5,7 +5,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Paperclip, X, Plus, Link as LinkIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Paperclip, X, Plus, Link as LinkIcon, Sparkles, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -16,6 +16,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Textarea } from "@/components/ui/textarea";
 import type { Task } from "@/lib/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useOnDeviceAI } from "@/hooks/use-on-device-ai";
+import { useToast } from "@/hooks/use-toast";
 
 interface TaskFormProps {
   isOpen: boolean;
@@ -28,6 +30,10 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [attachmentRemoved, setAttachmentRemoved] = useState(false);
   const isEditMode = !!task;
+
+  const { toast } = useToast();
+  const { aiState } = useOnDeviceAI();
+  const [isRewriting, setIsRewriting] = useState(false);
 
   const taskSchema = useMemo(() => {
     return z.object({
@@ -54,6 +60,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
   useEffect(() => {
     if (isOpen) {
       setAttachmentRemoved(false);
+      setIsRewriting(false);
       if (task) {
         form.reset({
           title: task.title,
@@ -75,6 +82,34 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
       }
     }
   }, [isOpen, task, form]);
+
+  const handleRewriteTitle = async () => {
+    if (aiState !== 'ready' || isRewriting) return;
+
+    const currentTitle = form.getValues('title');
+    if (!currentTitle.trim()) {
+      return;
+    }
+
+    setIsRewriting(true);
+    try {
+      const session = await window.ai.createTextSession();
+      const prompt = `Rewrite the following task title to be more clear, concise, and actionable. Only return the rewritten title, without any extra text or quotation marks.\n\nOriginal title: "${currentTitle}"\n\nRewritten title:`;
+      const result = await session.prompt(prompt);
+
+      form.setValue('title', result.trim(), { shouldValidate: true });
+      session.destroy();
+    } catch (e) {
+      console.error("Failed to rewrite title:", e);
+      toast({
+        title: "AI Rewrite Failed",
+        description: "Could not generate a new title. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsRewriting(false);
+    }
+  };
 
   const handleFormSubmit = async (data: TaskFormValues) => {
     let attachmentDataUrl: string | undefined = task?.attachment;
@@ -147,7 +182,27 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
                     <FormItem>
                       <FormLabel>Task Title</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Complete project report" {...field} />
+                        <div className="relative">
+                          <Input placeholder="e.g., Complete project report" {...field} />
+                          {aiState === 'ready' && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                                onClick={handleRewriteTitle}
+                                disabled={isRewriting || !field.value}
+                                title="Rewrite with AI"
+                            >
+                                {isRewriting ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Sparkles className="h-4 w-4" />
+                                )}
+                                <span className="sr-only">Rewrite with AI</span>
+                            </Button>
+                          )}
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
