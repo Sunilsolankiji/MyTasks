@@ -30,11 +30,10 @@ export default function TaskPage() {
 
   useEffect(() => {
     // Only save to localStorage on the client and after initial load
-    console.log("localStorage useEffect triggered. Saving tasks:", tasks);
     if (typeof window !== 'undefined' && !isLoading) {
       localStorage.setItem("tasks", JSON.stringify(tasks));
     }
-  }, [tasks]);
+  }, [tasks, isLoading]);
 
   const handleAddTask = async (newTaskData: Omit<Task, 'id' | 'completed'>) => {
     const newTask: Task = {
@@ -46,17 +45,11 @@ export default function TaskPage() {
   };
 
   const handleToggleComplete = (id: string, completed: boolean) => {
-    console.log(`Attempting to toggle task with ID: ${id} to completed: ${completed}`);
-    console.log("Tasks before toggle:", tasks);
     setTasks(tasks.map(task => task.id === id ? { ...task, completed } : task));
-    console.log("Tasks after toggle:", tasks.map(task => task.id === id ? { ...task, completed } : task));
   };
 
   const handleDeleteTask = (id: string) => {
-    console.log("Attempting to delete task with ID:", id);
-    console.log("Tasks before deletion:", tasks);
     setTasks(tasks.filter(task => task.id !== id));
-    console.log("Tasks after deletion:", tasks.filter(task => task.id !== id));
   };
 
   const allTasks = useMemo(() => {
@@ -96,57 +89,59 @@ export default function TaskPage() {
     <div className="min-h-screen w-full bg-background flex flex-col">
       <Header onOpenTaskDialog={() => setIsTaskFormOpen(true)} />
       <main className="container py-8 px-4">
-        <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
-          <h1 className="text-3xl font-bold tracking-tight">Your Tasks</h1>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search tasks..."
-                className="pl-9"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
+            <h1 className="text-3xl font-bold tracking-tight">Your Tasks</h1>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search tasks..."
+                  className="pl-9"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        <Tabs defaultValue="all">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="today">Today</TabsTrigger>
-            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
-          </TabsList>
-          <TabsContent value="today" className="pt-6">
-            <TaskList
-              tasks={todayTasks}
-              onToggleComplete={handleToggleComplete}
-              onDelete={handleDeleteTask}
-            />
-          </TabsContent>
-          <TabsContent value="upcoming" className="pt-6">
-            <TaskList
-              tasks={upcomingTasks}
-              onToggleComplete={handleToggleComplete}
-              onDelete={handleDeleteTask}
-            />
-          </TabsContent>
-          <TabsContent value="completed" className="pt-6">
-            <TaskList
-              tasks={completedTasks}
-              onToggleComplete={handleToggleComplete}
-              onDelete={handleDeleteTask}
-            />
-          </TabsContent>
-          <TabsContent value="all" className="pt-6">
-            {isLoading ? <div>Loading tasks...</div> : <TaskList
-              tasks={allTasks}
-              onToggleComplete={handleToggleComplete}
-              onDelete={handleDeleteTask}
-            />}
-          </TabsContent>
-        </Tabs>
+          <Tabs defaultValue="all">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="today">Today</TabsTrigger>
+              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+              <TabsTrigger value="completed">Completed</TabsTrigger>
+            </TabsList>
+            <TabsContent value="today" className="pt-6">
+              <TaskList
+                tasks={todayTasks}
+                onToggleComplete={handleToggleComplete}
+                onDelete={handleDeleteTask}
+              />
+            </TabsContent>
+            <TabsContent value="upcoming" className="pt-6">
+              <TaskList
+                tasks={upcomingTasks}
+                onToggleComplete={handleToggleComplete}
+                onDelete={handleDeleteTask}
+              />
+            </TabsContent>
+            <TabsContent value="completed" className="pt-6">
+              <TaskList
+                tasks={completedTasks}
+                onToggleComplete={handleToggleComplete}
+                onDelete={handleDeleteTask}
+              />
+            </TabsContent>
+            <TabsContent value="all" className="pt-6">
+              {isLoading ? <div>Loading tasks...</div> : <TaskList
+                tasks={allTasks}
+                onToggleComplete={handleToggleComplete}
+                onDelete={handleDeleteTask}
+              />}
+            </TabsContent>
+          </Tabs>
+        </div>
       </main>
       <TaskForm
         isOpen={isTaskFormOpen}
