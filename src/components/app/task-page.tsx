@@ -18,8 +18,27 @@ import {
 import { Button } from "@/components/ui/button";
 import { TaskListSkeleton } from "./task-list-skeleton";
 import { SettingsDialog } from "./settings-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
 
 const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
+
+const taskImportSchema = z.object({
+  id: z.string(),
+  title: z.string().min(1, "Title cannot be empty"),
+  date: z.string().datetime({ offset: true }).optional().nullable().transform((val) => val ? new Date(val) : undefined),
+  completed: z.boolean(),
+  notes: z.string().optional().nullable(),
+  attachment: z.string().optional().nullable(),
+  attachmentName: z.string().optional().nullable(),
+  creationDate: z.string().datetime({ offset: true }).transform((val) => new Date(val)),
+  completionDate: z.string().datetime({ offset: true }).optional().nullable().transform((val) => val ? new Date(val) : undefined),
+  priority: z.enum(['low', 'medium', 'high']),
+  referenceLinks: z.array(z.string()).optional().nullable(),
+});
+
+const tasksImportSchema = z.array(taskImportSchema);
+
 
 export default function TaskPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -31,19 +50,32 @@ export default function TaskPage() {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [projectName, setProjectName] = useState('My Tasks');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const storedTasks = localStorage.getItem("tasks");
-      if (storedTasks) {
-        setTasks(JSON.parse(storedTasks).map((task: any) => ({
-          ...task,
-          priority: task.priority || 'medium',
-          date: task.date ? new Date(task.date) : undefined,
-          creationDate: task.creationDate ? new Date(task.creationDate) : new Date(),
-          completionDate: task.completionDate ? new Date(task.completionDate) : undefined,
-          referenceLinks: task.referenceLinks || [],
-        })));
+      try {
+        const storedTasks = localStorage.getItem("tasks");
+        if (storedTasks) {
+          const parsedTasks = JSON.parse(storedTasks).map((task: any) => ({
+            ...task,
+            priority: task.priority || 'medium',
+            date: task.date ? new Date(task.date) : undefined,
+            creationDate: task.creationDate ? new Date(task.creationDate) : new Date(),
+            completionDate: task.completionDate ? new Date(task.completionDate) : undefined,
+            referenceLinks: task.referenceLinks || [],
+          }))
+          const validation = tasksImportSchema.safeParse(parsedTasks.map((t:Task) => ({...t, date: t.date?.toISOString(), creationDate: t.creationDate.toISOString(), completionDate: t.completionDate?.toISOString()})));
+          if (validation.success) {
+            setTasks(validation.data as Task[]);
+          } else {
+             console.error("Local storage validation error", validation.error.format());
+             localStorage.removeItem("tasks");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to parse tasks from local storage", error);
+        localStorage.removeItem("tasks");
       }
       
       const storedSortKey = localStorage.getItem("sortKey");
@@ -58,7 +90,14 @@ export default function TaskPage() {
 
       const storedProjectName = localStorage.getItem("projectName");
       if (storedProjectName) {
-        setProjectName(JSON.parse(storedProjectName));
+        try {
+          const parsedName = JSON.parse(storedProjectName);
+          if (typeof parsedName === 'string') {
+            setProjectName(parsedName);
+          }
+        } catch {
+          setProjectName('My Tasks');
+        }
       }
       
       setIsLoading(false);
@@ -121,6 +160,72 @@ export default function TaskPage() {
     setProjectName(name);
   };
 
+  const handleExportTasks = () => {
+    if (tasks.length === 0) {
+      toast({
+        title: "No Tasks",
+        description: "There are no tasks to export.",
+        variant: "destructive"
+      });
+      return;
+    }
+    const jsonString = JSON.stringify(tasks, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `my-tasks-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast({
+      title: "Export successful",
+      description: "Your tasks have been downloaded.",
+    });
+    setIsSettingsOpen(false);
+  };
+
+  const handleImportTasks = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result;
+        if (typeof content !== 'string') {
+          throw new Error("Could not read file content.");
+        }
+        const data = JSON.parse(content);
+        const validationResult = tasksImportSchema.safeParse(data);
+
+        if (!validationResult.success) {
+          console.error("Import validation error:", validationResult.error.format());
+          throw new Error("The selected file has an invalid format.");
+        }
+        
+        setTasks(validationResult.data as Task[]);
+        toast({
+          title: "Import Successful",
+          description: `Successfully imported ${validationResult.data.length} tasks.`,
+        });
+        setIsSettingsOpen(false);
+      } catch (error) {
+        toast({
+          title: "Import Failed",
+          description: error instanceof Error ? error.message : "An unknown error occurred.",
+          variant: "destructive",
+        });
+      }
+    };
+    reader.onerror = () => {
+      toast({
+        title: "Import Failed",
+        description: "Could not read the selected file.",
+        variant: "destructive",
+      });
+    }
+    reader.readAsText(file);
+  };
+
   const allTasks = useMemo(() => {
     return [...tasks]
       .filter(task =>
@@ -144,7 +249,7 @@ export default function TaskPage() {
             if (!a.completionDate && !b.completionDate) return 0;
             return (a.completionDate!.getTime() - b.completionDate!.getTime()) * dir;
           case 'priority':
-            return (priorityOrder[b.priority] - priorityOrder[a.priority]) * dir;
+            return (priorityOrder[a.priority] - priorityOrder[b.priority]) * dir * -1;
           case 'creationDate':
           default:
             return (a.creationDate.getTime() - b.creationDate.getTime()) * dir;
@@ -270,6 +375,8 @@ export default function TaskPage() {
         onClose={() => setIsSettingsOpen(false)}
         projectName={projectName}
         onUpdateProjectName={handleUpdateProjectName}
+        onExportTasks={handleExportTasks}
+        onImportTasks={handleImportTasks}
       />
     </div>
   );
