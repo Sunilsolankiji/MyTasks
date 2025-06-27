@@ -1,13 +1,12 @@
 'use server';
 /**
- * @fileOverview A flow for fetching weather data from WeatherAPI.com.
+ * @fileOverview A function for fetching weather data from WeatherAPI.com.
  *
  * - getWeather - A function that fetches weather for a given location.
  * - GetWeatherInput - The input type for the getWeather function.
  * - GetWeatherOutput - The return type for the getWeather function.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 const weatherConditions = ['sunny', 'cloudy', 'rainy', 'snowy', 'stormy', 'unknown'] as const;
@@ -26,10 +25,6 @@ const GetWeatherOutputSchema = z.object({
 });
 export type GetWeatherOutput = z.infer<typeof GetWeatherOutputSchema>;
 
-export async function getWeather(input: GetWeatherInput): Promise<GetWeatherOutput> {
-  return getWeatherFlow(input);
-}
-
 function mapCodeToCondition(code: number): WeatherCondition {
     if (code === 1000) return 'sunny';
     if ([1003, 1006, 1009, 1030, 1135, 1147].includes(code)) return 'cloudy';
@@ -46,19 +41,15 @@ function mapCodeToCondition(code: number): WeatherCondition {
     return 'unknown';
 }
 
-const getWeatherFlow = ai.defineFlow(
-  {
-    name: 'getWeatherFlow',
-    inputSchema: GetWeatherInputSchema,
-    outputSchema: GetWeatherOutputSchema,
-  },
-  async (input) => {
+export async function getWeather(input: GetWeatherInput): Promise<GetWeatherOutput> {
+    const validatedInput = GetWeatherInputSchema.parse(input);
+
     const apiKey = process.env.WEATHER_API_KEY;
     if (!apiKey) {
       throw new Error('WEATHER_API_KEY environment variable is not set.');
     }
 
-    const url = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${encodeURIComponent(input.location)}`;
+    const url = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${encodeURIComponent(validatedInput.location)}`;
 
     try {
       const response = await fetch(url, { cache: 'no-store' });
@@ -68,12 +59,14 @@ const getWeatherFlow = ai.defineFlow(
       }
       const data = await response.json();
 
-      return {
+      const result = {
         condition: mapCodeToCondition(data.current.condition.code),
         temperature: data.current.temp_c,
         location: data.location.name,
         description: data.current.condition.text,
       };
+
+      return GetWeatherOutputSchema.parse(result);
 
     } catch (error) {
         console.error("Failed to fetch weather data:", error);
@@ -82,5 +75,4 @@ const getWeatherFlow = ai.defineFlow(
         }
         throw new Error('An unknown error occurred while fetching weather data.');
     }
-  }
-);
+}
