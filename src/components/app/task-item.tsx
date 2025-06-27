@@ -50,40 +50,43 @@ export function TaskItem({ task, onToggleComplete, onDelete, onEdit }: TaskItemP
         </DropdownMenu>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2 pl-9 text-sm text-muted-foreground">
-          <div className="flex flex-col space-y-1 pt-1">
-            {task.creationDate && (
-              <div className="flex items-center">
-                <Clock className="mr-2 h-4 w-4" />
-                <span>Created: {format(new Date(task.creationDate), "PPp")}</span>
-              </div>
-            )}
-            {task.date && (
-            <div className="flex items-center">
-                <Calendar className="mr-2 h-4 w-4" />
-                <span>Due: {format(new Date(task.date), "PPP")}</span>
+        <div className="pl-9">
+            <div className="space-y-2 text-sm text-muted-foreground">
+                {task.date && (
+                    <div className="flex items-center pt-1">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        <span>Due: {format(new Date(task.date), "PPP")}</span>
+                    </div>
+                )}
+                {task.notes && <p className="pt-2">{task.notes}</p>}
+                {task.attachment && task.attachmentName && (
+                    <div className="flex items-center pt-2 text-primary">
+                    <Paperclip className="mr-2 h-4 w-4" />
+                    <a
+                        href={task.attachment}
+                        download={task.attachmentName}
+                        className="hover:underline"
+                    >
+                        {task.attachmentName}
+                    </a>
+                    </div>
+                )}
             </div>
-            )}
-            {task.completed && task.completionDate && (
-            <div className="flex items-center text-primary">
-                <CheckCircle className="mr-2 h-4 w-4" />
-                <span>Completed: {format(new Date(task.completionDate), "PPp")}</span>
+
+            <div className="flex justify-end items-center space-x-4 pt-4 text-xs text-muted-foreground">
+                {task.creationDate && (
+                <div className="flex items-center">
+                    <Clock className="mr-1.5 h-3 w-3" />
+                    <span>Created: {format(new Date(task.creationDate), "PPp")}</span>
+                </div>
+                )}
+                {task.completed && task.completionDate && (
+                <div className="flex items-center text-primary">
+                    <CheckCircle className="mr-1.5 h-3 w-3" />
+                    <span>Completed: {format(new Date(task.completionDate), "PPp")}</span>
+                </div>
+                )}
             </div>
-            )}
-          </div>
-          {task.notes && <p className="pt-2">{task.notes}</p>}
-          {task.attachment && task.attachmentName && (
-            <div className="flex items-center pt-2 text-primary">
-              <Paperclip className="mr-2 h-4 w-4" />
-              <a
-                href={task.attachment}
-                download={task.attachmentName}
-                className="hover:underline"
-              >
-                {task.attachmentName}
-              </a>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
