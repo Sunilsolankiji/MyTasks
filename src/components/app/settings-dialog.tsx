@@ -146,6 +146,25 @@ export function SettingsDialog({
   const handleClearLocation = () => {
     onLocationChange(null);
     form.setValue('location', '');
+    if (showWeatherWidget) {
+      onToggleWeatherWidget(false);
+      toast({
+        title: "Weather Widget Disabled",
+        description: "The weather widget was disabled because a location is required.",
+      });
+    }
+  };
+  
+  const handleToggleWeatherSwitch = (checked: boolean) => {
+    if (checked && !location) {
+      toast({
+        title: "Location Required",
+        description: "Please set a location before enabling the weather widget.",
+        variant: "destructive",
+      });
+      return;
+    }
+    onToggleWeatherWidget(checked);
   };
 
   return (
@@ -247,7 +266,7 @@ export function SettingsDialog({
                 </div>
                 <Switch
                     checked={showWeatherWidget}
-                    onCheckedChange={onToggleWeatherWidget}
+                    onCheckedChange={handleToggleWeatherSwitch}
                     aria-label="Toggle weather widget"
                 />
             </div>
