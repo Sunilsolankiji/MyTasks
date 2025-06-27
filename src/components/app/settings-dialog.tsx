@@ -33,6 +33,7 @@ import { ScrollArea } from "../ui/scroll-area";
 const settingsSchema = z.object({
   projectName: z.string().min(1, "Project name is required."),
   location: z.string().optional(),
+  showWeatherWidget: z.boolean(),
 });
 
 interface SettingsDialogProps {
@@ -62,7 +63,7 @@ export function SettingsDialog({
 }: SettingsDialogProps) {
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
-    defaultValues: { projectName, location: "" },
+    defaultValues: { projectName, location: "", showWeatherWidget },
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,13 +74,22 @@ export function SettingsDialog({
   
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
+  const [internalLocation, setInternalLocation] = useState<Location | null>(location);
+  
+  const watchedShowWeather = form.watch("showWeatherWidget");
+
   useEffect(() => {
     if (isOpen) {
-      form.reset({ projectName, location: location?.name || "" });
+      form.reset({
+        projectName,
+        location: location?.name || "",
+        showWeatherWidget: showWeatherWidget
+      });
+      setInternalLocation(location);
       setSuggestions([]);
       setShowSuggestions(false);
     }
-  }, [projectName, isOpen, form, location]);
+  }, [projectName, isOpen, form, location, showWeatherWidget]);
 
   const handleLocationSearch = useCallback((query: string) => {
     if (debounceTimeout.current) {
@@ -113,8 +123,18 @@ export function SettingsDialog({
   
 
   const onSubmit = (values: z.infer<typeof settingsSchema>) => {
+    if (values.showWeatherWidget && !internalLocation) {
+        toast({
+            title: "Location Required",
+            description: "Please set a location before enabling the weather widget.",
+            variant: "destructive",
+        });
+        return;
+    }
+
     onUpdateProjectName(values.projectName);
-    // Location is handled separately, via onLocationChange
+    onLocationChange(values.showWeatherWidget ? internalLocation : null);
+    onToggleWeatherWidget(values.showWeatherWidget);
     onClose();
   }
 
@@ -139,33 +159,14 @@ export function SettingsDialog({
   };
 
   const handleSuggestionClick = (selectedLocation: Location) => {
-    onLocationChange(selectedLocation);
-    form.setValue('location', selectedLocation.name);
+    setInternalLocation(selectedLocation);
+    form.setValue('location', selectedLocation.name, { shouldValidate: true });
     setShowSuggestions(false);
   };
 
   const handleClearLocation = () => {
-    onLocationChange(null);
+    setInternalLocation(null);
     form.setValue('location', '');
-    if (showWeatherWidget) {
-      onToggleWeatherWidget(false);
-      toast({
-        title: "Weather Widget Disabled",
-        description: "The weather widget was disabled because a location is required.",
-      });
-    }
-  };
-  
-  const handleToggleWeatherSwitch = (checked: boolean) => {
-    if (checked && !location) {
-      toast({
-        title: "Location Required",
-        description: "Please set a location before enabling the weather widget.",
-        variant: "destructive",
-      });
-      return;
-    }
-    onToggleWeatherWidget(checked);
   };
 
   return (
@@ -198,89 +199,93 @@ export function SettingsDialog({
 
                 <Separator />
                 
-                <div>
-                  <div className="flex items-center justify-between rounded-lg border p-4">
+                <FormField
+                  control={form.control}
+                  name="showWeatherWidget"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                          <FormLabel>Show Weather Widget</FormLabel>
-                          <p className="text-[0.8rem] text-muted-foreground">
-                              Display current weather and effects based on location.
-                          </p>
+                        <FormLabel>Show Weather Widget</FormLabel>
+                        <p className="text-[0.8rem] text-muted-foreground">
+                            Display current weather and effects.
+                        </p>
                       </div>
-                      <Switch
-                          checked={showWeatherWidget}
-                          onCheckedChange={handleToggleWeatherSwitch}
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
                           aria-label="Toggle weather widget"
-                      />
-                  </div>
-                  {showWeatherWidget && location && (
-                    <div className="pt-2 px-1 text-sm text-muted-foreground">
-                      <span className="font-semibold text-foreground">Current Location:</span> {location.name}, {location.country}
-                    </div>
+                        />
+                      </FormControl>
+                    </FormItem>
                   )}
-                </div>
+                />
+                
+                {watchedShowWeather && (
+                  <div className="space-y-2">
+                    <FormLabel>Weather Location</FormLabel>
+                    <div className="relative">
+                      <FormField
+                        control={form.control}
+                        name="location"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <div className="relative">
+                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                  {...field}
+                                  placeholder="Search for a city..."
+                                  className="pl-9"
+                                  onChange={(e) => {
+                                      field.onChange(e);
+                                      handleLocationSearch(e.target.value);
+                                  }}
+                                  onFocus={() => {
+                                      if (field.value) {
+                                          handleLocationSearch(field.value)
+                                      }
+                                  }}
+                                  autoComplete="off"
+                                />
+                                {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
+                                {internalLocation && !isSearching && (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                                        onClick={handleClearLocation}
+                                    >
+                                        <X className="h-4 w-4" />
+                                        <span className="sr-only">Clear location</span>
+                                    </Button>
+                                )}
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                <div className="space-y-2">
-                  <FormLabel>Weather Location</FormLabel>
-                  <div className="relative">
-                    <FormField
-                      control={form.control}
-                      name="location"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <div className="relative">
-                              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                              <Input 
-                                {...field}
-                                placeholder="Search for a city..."
-                                className="pl-9"
-                                onChange={(e) => {
-                                    field.onChange(e);
-                                    handleLocationSearch(e.target.value);
-                                }}
-                                onFocus={() => {
-                                    if (field.value) {
-                                        handleLocationSearch(field.value)
-                                    }
-                                }}
-                                autoComplete="off"
-                              />
-                              {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
-                              {location && !isSearching && (
-                                  <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="icon"
-                                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                                      onClick={handleClearLocation}
-                                  >
-                                      <X className="h-4 w-4" />
-                                      <span className="sr-only">Clear location</span>
-                                  </Button>
-                              )}
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
+                      {showSuggestions && suggestions.length > 0 && (
+                        <div className="absolute z-10 w-full bg-background border rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                          {suggestions.map((suggestion) => (
+                            <button
+                              type="button"
+                              key={suggestion.id}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-accent"
+                              onClick={() => handleSuggestionClick(suggestion)}
+                            >
+                              {suggestion.name}, {suggestion.country}
+                            </button>
+                          ))}
+                        </div>
                       )}
-                    />
-
-                    {showSuggestions && suggestions.length > 0 && (
-                      <div className="absolute z-10 w-full bg-background border rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
-                        {suggestions.map((suggestion) => (
-                          <button
-                            type="button"
-                            key={suggestion.id}
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-accent"
-                            onClick={() => handleSuggestionClick(suggestion)}
-                          >
-                            {suggestion.name}, {suggestion.country}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    </div>
                   </div>
-                </div>
+                )}
+
 
                 <Separator />
 
