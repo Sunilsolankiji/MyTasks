@@ -329,7 +329,7 @@ export default function TaskPage() {
   }
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col bg-background">
+    <div className="relative min-h-screen w-full flex flex-col">
        {location && <WeatherEffect location={location} />}
       <Header 
         projectName={projectName}
