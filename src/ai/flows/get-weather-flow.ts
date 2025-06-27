@@ -65,7 +65,7 @@ export async function getWeather(input: GetWeatherInput): Promise<GetWeatherOutp
         location: data.location.name,
         description: data.current.condition.text,
       };
-
+      
       return GetWeatherOutputSchema.parse(result);
 
     } catch (error) {

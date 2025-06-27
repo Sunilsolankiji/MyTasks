@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -24,7 +24,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "../ui/separator";
-import { Download, Upload } from "lucide-react";
+import { Download, Upload, Loader2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
+import { searchLocations, type SearchLocationsOutput } from "@/ai/flows/search-locations-flow";
 
 const settingsSchema = z.object({
   projectName: z.string().min(1, "Project name is required."),
@@ -49,6 +51,12 @@ export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectNa
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [suggestions, setSuggestions] = useState<SearchLocationsOutput>([]);
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [hasSelectedSuggestion, setHasSelectedSuggestion] = useState(false);
+
+  const locationValue = form.watch('location');
 
   useEffect(() => {
     if (isOpen) {
@@ -56,11 +64,39 @@ export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectNa
     }
   }, [projectName, location, isOpen, form]);
 
+  useEffect(() => {
+    if (hasSelectedSuggestion || !locationValue || locationValue.length < 2) {
+      setSuggestions([]);
+      if(isSuggestionsOpen) setIsSuggestionsOpen(false);
+      return;
+    }
+
+    const handler = setTimeout(async () => {
+      setIsLoadingSuggestions(true);
+      const results = await searchLocations({ query: locationValue });
+      setSuggestions(results);
+      setIsSuggestionsOpen(results.length > 0);
+      setIsLoadingSuggestions(false);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [locationValue, hasSelectedSuggestion, isSuggestionsOpen]);
+
+
   function onSubmit(values: z.infer<typeof settingsSchema>) {
     onUpdateProjectName(values.projectName);
     onUpdateLocation(values.location || "");
     onClose();
   }
+
+  const handleSuggestionClick = (suggestion: SearchLocationsOutput[number]) => {
+    const displayValue = [suggestion.name, suggestion.region, suggestion.country].filter(Boolean).join(', ');
+    setHasSelectedSuggestion(true);
+    form.setValue('location', displayValue, { shouldValidate: true });
+    setIsSuggestionsOpen(false);
+  };
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -113,9 +149,45 @@ export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectNa
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Location</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. San Francisco, CA" {...field} value={field.value ?? ''} />
-                    </FormControl>
+                    <Popover open={isSuggestionsOpen} onOpenChange={setIsSuggestionsOpen}>
+                      <PopoverAnchor>
+                         <div className="relative">
+                            <FormControl>
+                              <Input
+                                placeholder="Start typing a city name..."
+                                {...field}
+                                value={field.value ?? ''}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setHasSelectedSuggestion(false);
+                                }}
+                                autoComplete="off"
+                              />
+                            </FormControl>
+                            {isLoadingSuggestions && (
+                              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                            )}
+                          </div>
+                      </PopoverAnchor>
+                      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-1" onOpenAutoFocus={(e) => e.preventDefault()}>
+                        <div className="max-h-60 overflow-y-auto">
+                          {suggestions.length > 0 ? (
+                            suggestions.map((suggestion) => (
+                              <button
+                                type="button"
+                                key={suggestion.id}
+                                className="w-full text-left cursor-pointer p-2 text-sm hover:bg-accent focus:bg-accent focus:outline-none rounded-md"
+                                onClick={() => handleSuggestionClick(suggestion)}
+                              >
+                                {[suggestion.name, suggestion.region, suggestion.country].filter(Boolean).join(', ')}
+                              </button>
+                            ))
+                          ) : (
+                            !isLoadingSuggestions && <p className="p-2 text-sm text-muted-foreground">No results found.</p>
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                      <Fd>Used for the live weather effect.</Fd>
                     <FormMessage />
                   </FormItem>
