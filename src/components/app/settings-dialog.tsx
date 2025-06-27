@@ -16,6 +16,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription as Fd,
   FormField,
   FormItem,
   FormLabel,
@@ -27,6 +28,7 @@ import { Download, Upload } from "lucide-react";
 
 const settingsSchema = z.object({
   projectName: z.string().min(1, "Project name is required."),
+  location: z.string().optional(),
 });
 
 interface SettingsDialogProps {
@@ -36,24 +38,27 @@ interface SettingsDialogProps {
   onUpdateProjectName: (name: string) => void;
   onExportClick: () => void;
   onImportFileSelect: (file: File) => void;
+  location: string;
+  onUpdateLocation: (location: string) => void;
 }
 
-export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectName, onExportClick, onImportFileSelect }: SettingsDialogProps) {
+export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectName, onExportClick, onImportFileSelect, location, onUpdateLocation }: SettingsDialogProps) {
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
-    defaultValues: { projectName },
+    defaultValues: { projectName, location },
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
-      form.reset({ projectName });
+      form.reset({ projectName, location });
     }
-  }, [projectName, isOpen, form]);
+  }, [projectName, location, isOpen, form]);
 
   function onSubmit(values: z.infer<typeof settingsSchema>) {
     onUpdateProjectName(values.projectName);
+    onUpdateLocation(values.location || "");
     onClose();
   }
 
@@ -101,6 +106,22 @@ export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectNa
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. San Francisco, CA" {...field} value={field.value ?? ''} />
+                    </FormControl>
+                     <Fd>Used for the live weather effect.</Fd>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
 
               <Separator />
 

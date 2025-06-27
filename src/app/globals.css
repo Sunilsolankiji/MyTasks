@@ -82,3 +82,10 @@
  @apply bg-background text-foreground;
   }
 }
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
