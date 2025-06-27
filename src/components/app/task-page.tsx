@@ -6,7 +6,7 @@ import { Header } from "./header";
 import { TaskForm } from "./task-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, ArrowUp, ArrowDown } from "lucide-react";
 import { TaskList } from "./task-list";
 import {
   Select,
@@ -15,8 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 export default function TaskPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -140,7 +139,7 @@ export default function TaskPage() {
           <div className="w-full max-w-4xl">
             <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
               <h1 className="text-3xl font-bold tracking-tight">Your Tasks</h1>
-              <div className="flex gap-2 w-full sm:w-auto flex-wrap justify-end items-center">
+              <div className="flex gap-4 w-full sm:w-auto flex-wrap justify-end items-center">
                 <div className="relative w-full sm:w-auto sm:flex-grow">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -150,24 +149,22 @@ export default function TaskPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Select value={sortKey} onValueChange={(value: 'creationDate' | 'date' | 'title' | 'completionDate') => setSortKey(value)}>
-                  <SelectTrigger className="w-full sm:w-[150px]">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="creationDate">Creation Date</SelectItem>
-                    <SelectItem value="date">Due Date</SelectItem>
-                    <SelectItem value="title">Title</SelectItem>
-                    <SelectItem value="completionDate">Completion Date</SelectItem>
-                  </SelectContent>
-                </Select>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="sort-direction"
-                    checked={sortDirection === 'desc'}
-                    onCheckedChange={(checked) => setSortDirection(checked ? 'desc' : 'asc')}
-                  />
-                  <Label htmlFor="sort-direction">Descending</Label>
+                <div className="flex items-center gap-2">
+                    <Select value={sortKey} onValueChange={(value: 'creationDate' | 'date' | 'title' | 'completionDate') => setSortKey(value)}>
+                    <SelectTrigger className="w-full sm:w-[150px]">
+                        <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="creationDate">Creation Date</SelectItem>
+                        <SelectItem value="date">Due Date</SelectItem>
+                        <SelectItem value="title">Title</SelectItem>
+                        <SelectItem value="completionDate">Completion Date</SelectItem>
+                    </SelectContent>
+                    </Select>
+                    <Button variant="outline" size="icon" onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}>
+                        {sortDirection === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+                        <span className="sr-only">Toggle sort direction</span>
+                    </Button>
                 </div>
               </div>
             </div>
