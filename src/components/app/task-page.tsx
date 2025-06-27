@@ -20,6 +20,8 @@ import { TaskListSkeleton } from "./task-list-skeleton";
 import { SettingsDialog } from "./settings-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { ExportDialog } from "./export-dialog";
+import { ImportPreviewDialog } from "./import-preview-dialog";
 
 const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
 
@@ -51,6 +53,10 @@ export default function TaskPage() {
   const [projectName, setProjectName] = useState('My Tasks');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { toast } = useToast();
+  
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [isImportPreviewDialogOpen, setIsImportPreviewDialogOpen] = useState(false);
+  const [tasksToImport, setTasksToImport] = useState<Task[]>([]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -129,7 +135,7 @@ export default function TaskPage() {
     } else {
       const newTask: Task = {
         ...taskData,
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
         completed: false,
         creationDate: new Date(),
       };
@@ -160,16 +166,16 @@ export default function TaskPage() {
     setProjectName(name);
   };
 
-  const handleExportTasks = () => {
-    if (tasks.length === 0) {
+  const handleExportTasks = (tasksToExport: Task[]) => {
+    if (tasksToExport.length === 0) {
       toast({
-        title: "No Tasks",
-        description: "There are no tasks to export.",
+        title: "No Tasks Selected",
+        description: "Please select at least one task to export.",
         variant: "destructive"
       });
       return;
     }
-    const jsonString = JSON.stringify(tasks, null, 2);
+    const jsonString = JSON.stringify(tasksToExport, null, 2);
     const blob = new Blob([jsonString], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -181,12 +187,11 @@ export default function TaskPage() {
     URL.revokeObjectURL(url);
     toast({
       title: "Export successful",
-      description: "Your tasks have been downloaded.",
+      description: `${tasksToExport.length} tasks have been downloaded.`,
     });
-    setIsSettingsOpen(false);
   };
 
-  const handleImportTasks = (file: File) => {
+  const handleImportFileSelect = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -199,15 +204,13 @@ export default function TaskPage() {
 
         if (!validationResult.success) {
           console.error("Import validation error:", validationResult.error.format());
-          throw new Error("The selected file has an invalid format.");
+          throw new Error("The selected file has an invalid format or content.");
         }
         
-        setTasks(validationResult.data as Task[]);
-        toast({
-          title: "Import Successful",
-          description: `Successfully imported ${validationResult.data.length} tasks.`,
-        });
+        setTasksToImport(validationResult.data as Task[]);
+        setIsImportPreviewDialogOpen(true);
         setIsSettingsOpen(false);
+
       } catch (error) {
         toast({
           title: "Import Failed",
@@ -225,6 +228,20 @@ export default function TaskPage() {
     }
     reader.readAsText(file);
   };
+
+  const handleConfirmImport = (selectedTasks: Task[]) => {
+    const existingIds = new Set(tasks.map(t => t.id));
+    const newTasks = selectedTasks.map(task => ({
+      ...task,
+      id: existingIds.has(task.id) ? crypto.randomUUID() : task.id,
+    }));
+
+    setTasks(prev => [...prev, ...newTasks]);
+    toast({
+        title: "Import Successful",
+        description: `Successfully imported ${newTasks.length} tasks.`,
+    });
+  }
 
   const allTasks = useMemo(() => {
     return [...tasks]
@@ -274,6 +291,19 @@ export default function TaskPage() {
   const completedTasks = useMemo(() => {
     return allTasks.filter(task => task.completed);
   }, [allTasks]);
+  
+  const handleOpenExportDialog = () => {
+    if (tasks.length === 0) {
+      toast({
+        title: "No Tasks",
+        description: "There are no tasks to export.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setIsExportDialogOpen(true);
+    setIsSettingsOpen(false);
+  }
 
   return (
     <div className="min-h-screen w-full bg-background flex flex-col">
@@ -375,8 +405,20 @@ export default function TaskPage() {
         onClose={() => setIsSettingsOpen(false)}
         projectName={projectName}
         onUpdateProjectName={handleUpdateProjectName}
-        onExportTasks={handleExportTasks}
-        onImportTasks={handleImportTasks}
+        onExportClick={handleOpenExportDialog}
+        onImportFileSelect={handleImportFileSelect}
+      />
+      <ExportDialog
+        isOpen={isExportDialogOpen}
+        onClose={() => setIsExportDialogOpen(false)}
+        tasks={tasks}
+        onExport={handleExportTasks}
+      />
+      <ImportPreviewDialog
+        isOpen={isImportPreviewDialogOpen}
+        onClose={() => setIsImportPreviewDialogOpen(false)}
+        tasksToImport={tasksToImport}
+        onConfirmImport={handleConfirmImport}
       />
     </div>
   );

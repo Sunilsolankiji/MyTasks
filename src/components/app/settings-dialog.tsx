@@ -34,11 +34,11 @@ interface SettingsDialogProps {
   onClose: () => void;
   projectName: string;
   onUpdateProjectName: (name: string) => void;
-  onExportTasks: () => void;
-  onImportTasks: (file: File) => void;
+  onExportClick: () => void;
+  onImportFileSelect: (file: File) => void;
 }
 
-export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectName, onExportTasks, onImportTasks }: SettingsDialogProps) {
+export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectName, onExportClick, onImportFileSelect }: SettingsDialogProps) {
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
     defaultValues: { projectName },
@@ -70,7 +70,7 @@ export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectNa
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      onImportTasks(file);
+      onImportFileSelect(file);
     }
     if (event.target) {
       event.target.value = '';
@@ -107,7 +107,7 @@ export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectNa
               <div className="space-y-2">
                 <FormLabel>Data Management</FormLabel>
                 <div className="flex gap-2">
-                  <Button type="button" variant="outline" className="w-full" onClick={onExportTasks}>
+                  <Button type="button" variant="outline" className="w-full" onClick={onExportClick}>
                     <Download className="mr-2 h-4 w-4" />
                     Export
                   </Button>
@@ -123,7 +123,7 @@ export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectNa
                     onChange={handleFileChange}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">Importing tasks will replace all current tasks.</p>
+                <p className="text-xs text-muted-foreground">Select tasks to import or export.</p>
               </div>
 
             <DialogFooter className="pt-4">
