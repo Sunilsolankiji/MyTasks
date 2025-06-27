@@ -60,10 +60,16 @@ export function TaskItem({ task, onToggleComplete, onDelete, onEdit }: TaskItemP
             )}
           </div>
           {task.notes && <p className="pt-2">{task.notes}</p>}
-          {task.attachment && (
+          {task.attachment && task.attachmentName && (
             <div className="flex items-center pt-2 text-primary">
               <Paperclip className="mr-2 h-4 w-4" />
-              <span>{task.attachment}</span>
+              <a
+                href={task.attachment}
+                download={task.attachmentName}
+                className="hover:underline"
+              >
+                {task.attachmentName}
+              </a>
             </div>
           )}
         </div>

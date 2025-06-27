@@ -5,6 +5,7 @@ export interface Task {
   completed: boolean;
   notes?: string;
   attachment?: string;
+  attachmentName?: string;
 }
 
 export interface Shift {

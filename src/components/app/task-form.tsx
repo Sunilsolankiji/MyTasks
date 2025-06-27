@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Paperclip } from "lucide-react";
+import { Calendar as CalendarIcon, Paperclip, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -25,6 +25,7 @@ interface TaskFormProps {
 
 export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [attachmentRemoved, setAttachmentRemoved] = useState(false);
   const isEditMode = !!task;
 
   const taskSchema = useMemo(() => {
@@ -44,11 +45,13 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
 
   useEffect(() => {
     if (isOpen) {
+      setAttachmentRemoved(false);
       if (task) {
         form.reset({
           title: task.title,
           date: task.date,
           notes: task.notes || "",
+          attachment: undefined,
         });
       } else {
         form.reset({
@@ -61,10 +64,46 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
     }
   }, [isOpen, task, form]);
 
-  const handleFormSubmit = (data: TaskFormValues) => {
-    const newAttachmentName = data.attachment?.[0]?.name;
-    const finalAttachment = newAttachmentName || task?.attachment;
-    onSubmit({ ...data, attachment: finalAttachment });
+  const handleFormSubmit = async (data: TaskFormValues) => {
+    let attachmentDataUrl: string | undefined = task?.attachment;
+    let attachmentName: string | undefined = task?.attachmentName;
+
+    if (attachmentRemoved) {
+      attachmentDataUrl = undefined;
+      attachmentName = undefined;
+    }
+
+    if (data.attachment && data.attachment.length > 0) {
+      const file = data.attachment[0];
+      attachmentName = file.name;
+      try {
+        attachmentDataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            if (event.target?.result) {
+              resolve(event.target.result as string);
+            } else {
+              reject(new Error("Failed to read file."));
+            }
+          };
+          reader.onerror = (error) => {
+            reject(error);
+          };
+          reader.readAsDataURL(file);
+        });
+      } catch (error) {
+        console.error("Error reading file:", error);
+        return;
+      }
+    }
+    
+    onSubmit({
+      title: data.title,
+      date: data.date,
+      notes: data.notes,
+      attachment: attachmentDataUrl,
+      attachmentName: attachmentName,
+    });
     onClose();
   };
   
@@ -156,15 +195,38 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
               render={({ field: { onChange, value, ...rest } }) => (
                 <FormItem>
                   <FormLabel>Attachment</FormLabel>
-                  <FormControl>
+                   <FormControl>
                     <div className="relative">
-                      <Button asChild variant="outline" className="w-full justify-start font-normal text-muted-foreground">
+                      <Button asChild variant="outline" className="w-full justify-start font-normal text-muted-foreground pr-10">
                         <div>
                           <Paperclip className="mr-2 h-4 w-4"/>
-                          {value?.[0]?.name || task?.attachment || "Attach a file"}
+                          {value?.[0]?.name || (!attachmentRemoved && task?.attachmentName) || "Attach a file"}
                         </div>
                       </Button>
-                      <Input className="absolute top-0 left-0 h-full w-full opacity-0 cursor-pointer" type="file" onChange={(e) => onChange(e.target.files)} {...rest} />
+                      <Input 
+                        className="absolute top-0 left-0 h-full w-full opacity-0 cursor-pointer" 
+                        type="file" 
+                        onChange={(e) => {
+                          onChange(e.target.files)
+                          setAttachmentRemoved(false);
+                        }} 
+                        {...rest} 
+                      />
+                      {(value?.[0] || (!attachmentRemoved && task?.attachmentName)) && (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                            onClick={() => {
+                                onChange(null);
+                                setAttachmentRemoved(true);
+                            }}
+                        >
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Remove attachment</span>
+                        </Button>
+                      )}
                     </div>
                   </FormControl>
                   <FormMessage />
