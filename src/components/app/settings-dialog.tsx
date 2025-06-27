@@ -198,6 +198,27 @@ export function SettingsDialog({
 
                 <Separator />
                 
+                <div>
+                  <div className="flex items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                          <FormLabel>Show Weather Widget</FormLabel>
+                          <p className="text-[0.8rem] text-muted-foreground">
+                              Display current weather and effects based on location.
+                          </p>
+                      </div>
+                      <Switch
+                          checked={showWeatherWidget}
+                          onCheckedChange={handleToggleWeatherSwitch}
+                          aria-label="Toggle weather widget"
+                      />
+                  </div>
+                  {showWeatherWidget && location && (
+                    <div className="pt-2 px-1 text-sm text-muted-foreground">
+                      <span className="font-semibold text-foreground">Current Location:</span> {location.name}, {location.country}
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-2">
                   <FormLabel>Weather Location</FormLabel>
                   <div className="relative">
@@ -259,27 +280,6 @@ export function SettingsDialog({
                       </div>
                     )}
                   </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                          <FormLabel>Show Weather Widget</FormLabel>
-                          <p className="text-[0.8rem] text-muted-foreground">
-                              Display current weather and effects based on location.
-                          </p>
-                      </div>
-                      <Switch
-                          checked={showWeatherWidget}
-                          onCheckedChange={handleToggleWeatherSwitch}
-                          aria-label="Toggle weather widget"
-                      />
-                  </div>
-                  {showWeatherWidget && location && (
-                    <div className="pt-2 px-1 text-sm text-muted-foreground">
-                      <span className="font-semibold text-foreground">Current Location:</span> {location.name}, {location.country}
-                    </div>
-                  )}
                 </div>
 
                 <Separator />
