@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'MyTasks',
+  title: 'My Tasks',
   description: 'Manage your tasks across different shifts effortlessly.',
 };
 

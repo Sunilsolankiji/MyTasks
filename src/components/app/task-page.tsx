@@ -27,7 +27,7 @@ export default function TaskPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [sortKey, setSortKey] = useState<'creationDate' | 'date' | 'title' | 'completionDate'>('creationDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [projectName, setProjectName] = useState('MyTasks');
+  const [projectName, setProjectName] = useState('My Tasks');
   const [shift, setShift] = useState<Shift>({ id: '1', startTime: '09:00', endTime: '17:00' });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
