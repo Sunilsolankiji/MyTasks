@@ -83,7 +83,8 @@ export default function TaskPage() {
     if (isLoading) return [];
     return [...tasks]
       .filter(task =>
-        task.title.toLowerCase().includes(searchTerm.toLowerCase())
+        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (task.notes && task.notes.toLowerCase().includes(searchTerm.toLowerCase()))
       )
       .sort((a, b) => {
         const dir = sortDirection === 'asc' ? 1 : -1;
