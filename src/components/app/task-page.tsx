@@ -209,7 +209,6 @@ export default function TaskPage() {
         
         setTasksToImport(validationResult.data as Task[]);
         setIsImportPreviewDialogOpen(true);
-        setIsSettingsOpen(false);
 
       } catch (error) {
         toast({
@@ -302,7 +301,6 @@ export default function TaskPage() {
       return;
     }
     setIsExportDialogOpen(true);
-    setIsSettingsOpen(false);
   }
 
   return (
