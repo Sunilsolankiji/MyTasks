@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -24,12 +23,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "../ui/separator";
-import { Upload, Download, Loader2, MapPin, X } from "lucide-react";
+import { Upload, Download, MapPin, X } from "lucide-react";
 import type { Location } from "@/lib/types";
 import { searchLocations } from "@/services/weather";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "../ui/switch";
 import { ScrollArea } from "../ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 const settingsSchema = z.object({
   projectName: z.string().min(1, "Project name is required."),
@@ -50,6 +50,24 @@ interface SettingsDialogProps {
   onToggleWeatherWidget: (show: boolean) => void;
 }
 
+const Loader2 = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={cn('h-4 w-4 loader-spin', className)}
+  >
+    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+  </svg>
+);
+
+
 export function SettingsDialog({ 
   isOpen, 
   onClose, 
@@ -68,6 +86,7 @@ export function SettingsDialog({
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
   const [suggestions, setSuggestions] = useState<Location[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -104,12 +123,12 @@ export function SettingsDialog({
     }
     
     setIsSearching(true);
+    setShowSuggestions(true);
 
     debounceTimeout.current = setTimeout(async () => {
       try {
         const results = await searchLocations(query);
         setSuggestions(results);
-        setShowSuggestions(true);
       } catch (error) {
         toast({
           title: "Error",
@@ -124,7 +143,6 @@ export function SettingsDialog({
     }, 500);
   }, [toast]);
   
-
   const onSubmit = (values: z.infer<typeof settingsSchema>) => {
     if (values.showWeatherWidget && !internalLocation) {
         toast({
@@ -255,11 +273,13 @@ export function SettingsDialog({
                                     onFocus={() => {
                                         if (field.value) {
                                             handleLocationSearch(field.value)
+                                        } else {
+                                            setShowSuggestions(true);
                                         }
                                     }}
                                     autoComplete="off"
                                   />
-                                  {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
+                                  {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4" />}
                                   {internalLocation && !isSearching && (
                                       <Button
                                           type="button"
@@ -280,7 +300,7 @@ export function SettingsDialog({
                         />
 
                         {showSuggestions && suggestions.length > 0 && (
-                          <div className="absolute z-10 w-full bg-background border rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                          <div ref={suggestionsRef} className="absolute z-10 w-full bg-background border rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
                             {suggestions.map((suggestion) => (
                               <button
                                 type="button"
