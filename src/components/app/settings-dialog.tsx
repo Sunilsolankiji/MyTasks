@@ -27,6 +27,7 @@ import { Download, Upload, Loader2, MapPin, X } from "lucide-react";
 import type { Location } from "@/lib/types";
 import { searchLocations } from "@/services/weather";
 import { useToast } from "@/hooks/use-toast";
+import { Switch } from "../ui/switch";
 
 const settingsSchema = z.object({
   projectName: z.string().min(1, "Project name is required."),
@@ -42,6 +43,8 @@ interface SettingsDialogProps {
   onImportFileSelect: (file: File) => void;
   location: Location | null;
   onLocationChange: (location: Location | null) => void;
+  showWeatherWidget: boolean;
+  onToggleWeatherWidget: (show: boolean) => void;
 }
 
 export function SettingsDialog({ 
@@ -52,7 +55,9 @@ export function SettingsDialog({
   onExportClick, 
   onImportFileSelect,
   location,
-  onLocationChange
+  onLocationChange,
+  showWeatherWidget,
+  onToggleWeatherWidget
 }: SettingsDialogProps) {
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
@@ -231,6 +236,20 @@ export function SettingsDialog({
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="space-y-0.5">
+                    <FormLabel>Show Weather Widget</FormLabel>
+                    <p className="text-[0.8rem] text-muted-foreground">
+                        Display current weather and effects based on location.
+                    </p>
+                </div>
+                <Switch
+                    checked={showWeatherWidget}
+                    onCheckedChange={onToggleWeatherWidget}
+                    aria-label="Toggle weather widget"
+                />
             </div>
 
             <Separator />

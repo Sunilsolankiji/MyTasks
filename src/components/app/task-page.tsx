@@ -60,6 +60,7 @@ export default function TaskPage() {
   const [isImportPreviewDialogOpen, setIsImportPreviewDialogOpen] = useState(false);
   const [tasksToImport, setTasksToImport] = useState<Task[]>([]);
   const [location, setLocation] = useState<Location | null>(null);
+  const [showWeatherWidget, setShowWeatherWidget] = useState(true);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -119,6 +120,16 @@ export default function TaskPage() {
         localStorage.removeItem("location");
       }
       
+      try {
+        const storedShowWeather = localStorage.getItem("showWeatherWidget");
+        if (storedShowWeather) {
+          setShowWeatherWidget(JSON.parse(storedShowWeather));
+        }
+      } catch (error) {
+        console.error("Failed to parse showWeatherWidget from local storage", error);
+        localStorage.removeItem("showWeatherWidget");
+      }
+
       setIsLoading(false);
     }
   }, []);
@@ -151,6 +162,12 @@ export default function TaskPage() {
       }
     }
   }, [location, isLoading]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isLoading) {
+      localStorage.setItem("showWeatherWidget", JSON.stringify(showWeatherWidget));
+    }
+  }, [showWeatherWidget, isLoading]);
 
   const handleSaveTask = (taskData: Omit<Task, 'id' | 'completed' | 'creationDate' | 'completionDate'>) => {
     if (editingTask) {
@@ -341,7 +358,7 @@ export default function TaskPage() {
                 <div className="flex-1">
                   <h1 className="text-3xl font-bold tracking-tight">Your Tasks</h1>
                 </div>
-                <WeatherWidget location={location} />
+                {showWeatherWidget && <WeatherWidget location={location} />}
                 <div className="flex gap-4 w-full sm:w-auto flex-wrap justify-end items-center">
                   <div className="relative w-full sm:w-auto sm:flex-grow">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -387,7 +404,7 @@ export default function TaskPage() {
           <div className="container mx-auto py-8 px-4 flex flex-col items-center">
             <div className="w-full max-w-4xl">
               <div className="rounded-lg border bg-background/80 backdrop-blur-sm shadow-sm relative overflow-hidden">
-                <WeatherEffect location={location} />
+                {showWeatherWidget && <WeatherEffect location={location} />}
                 <div className="p-6">
                     <TabsContent value="today" className="pt-6">
                       {isLoading ? <TaskListSkeleton /> : <TaskList
@@ -442,6 +459,8 @@ export default function TaskPage() {
         onImportFileSelect={handleImportFileSelect}
         location={location}
         onLocationChange={setLocation}
+        showWeatherWidget={showWeatherWidget}
+        onToggleWeatherWidget={setShowWeatherWidget}
       />
       <ExportDialog
         isOpen={isExportDialogOpen}
