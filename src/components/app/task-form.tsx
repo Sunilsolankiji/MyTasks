@@ -215,24 +215,22 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
                       <FormControl>
                         <div className="relative">
                           <Input placeholder="e.g., Complete project report" {...field} />
-                          {aiState === 'ready' && (
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                                onClick={handleRewriteTitle}
-                                disabled={isRewriting || !field.value}
-                                title="Rewrite with AI"
-                            >
-                                {isRewriting ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                    <Sparkles className="h-4 w-4" />
-                                )}
-                                <span className="sr-only">Rewrite with AI</span>
-                            </Button>
-                          )}
+                          <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                              onClick={handleRewriteTitle}
+                              disabled={isRewriting || !field.value || aiState !== 'ready'}
+                              title="Rewrite with AI"
+                          >
+                              {isRewriting ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                  <Sparkles className="h-4 w-4" />
+                              )}
+                              <span className="sr-only">Rewrite with AI</span>
+                          </Button>
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -328,24 +326,22 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
                             className="resize-none pr-10" 
                             {...field} 
                           />
-                          {aiState === 'ready' && (
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-1 top-1.5 h-8 w-8"
-                                onClick={handleRewriteNotes}
-                                disabled={isRewritingNotes || !field.value}
-                                title="Rewrite with AI"
-                            >
-                                {isRewritingNotes ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                    <Sparkles className="h-4 w-4" />
-                                )}
-                                <span className="sr-only">Rewrite with AI</span>
-                            </Button>
-                          )}
+                          <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-1 top-1.5 h-8 w-8"
+                              onClick={handleRewriteNotes}
+                              disabled={isRewritingNotes || !field.value || aiState !== 'ready'}
+                              title="Rewrite with AI"
+                          >
+                              {isRewritingNotes ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                  <Sparkles className="h-4 w-4" />
+                              )}
+                              <span className="sr-only">Rewrite with AI</span>
+                          </Button>
                         </div>
                       </FormControl>
                       <FormMessage />
