@@ -67,7 +67,7 @@ export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectNa
   useEffect(() => {
     if (hasSelectedSuggestion || !locationValue || locationValue.length < 2) {
       setSuggestions([]);
-      if(isSuggestionsOpen) setIsSuggestionsOpen(false);
+      setIsSuggestionsOpen(false);
       return;
     }
 
@@ -82,7 +82,7 @@ export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectNa
     return () => {
       clearTimeout(handler);
     };
-  }, [locationValue, hasSelectedSuggestion, isSuggestionsOpen]);
+  }, [locationValue, hasSelectedSuggestion]);
 
 
   function onSubmit(values: z.infer<typeof settingsSchema>) {
