@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
+import { AppBackground } from '@/components/app/app-background';
 
 export const metadata: Metadata = {
   title: 'My Tasks',
@@ -22,6 +23,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans antialiased">
         <ThemeProvider>
+          <AppBackground />
           {children}
           <Toaster />
         </ThemeProvider>

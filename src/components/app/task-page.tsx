@@ -22,7 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { ExportDialog } from "./export-dialog";
 import { ImportPreviewDialog } from "./import-preview-dialog";
-import { WeatherEffect } from "./weather-effect";
+import { WeatherInfo } from "./weather-info";
 
 const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
 
@@ -328,7 +328,7 @@ export default function TaskPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-background flex flex-col">
+    <div className="min-h-screen w-full bg-transparent flex flex-col">
       <Header 
         projectName={projectName}
         onOpenTaskDialog={() => setIsTaskFormOpen(true)}
@@ -340,7 +340,7 @@ export default function TaskPage() {
             <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
               <h1 className="text-3xl font-bold tracking-tight">Your Tasks</h1>
               <div className="flex gap-4 w-full sm:w-auto flex-wrap justify-end items-center">
-                <WeatherEffect location={location} />
+                <WeatherInfo location={location} />
                 <div className="relative w-full sm:w-auto sm:flex-grow">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input

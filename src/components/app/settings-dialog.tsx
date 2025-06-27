@@ -54,7 +54,7 @@ export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectNa
   const [suggestions, setSuggestions] = useState<SearchLocationsOutput>([]);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
-  const [hasSelectedSuggestion, setHasSelectedSuggestion] = useState(false);
+  const [hasSelectedSuggestion, setHasSelectedSuggestion] = useState(true);
 
   const locationValue = form.watch('location');
 
@@ -89,6 +89,7 @@ export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectNa
   function onSubmit(values: z.infer<typeof settingsSchema>) {
     onUpdateProjectName(values.projectName);
     onUpdateLocation(values.location || "");
+    window.dispatchEvent(new Event('location-updated'));
     onClose();
   }
 
