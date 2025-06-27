@@ -12,6 +12,7 @@ import { TaskList } from "./task-list";
 export default function TaskPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -34,13 +35,28 @@ export default function TaskPage() {
     }
   }, [tasks, isLoading]);
 
-  const handleAddTask = async (newTaskData: Omit<Task, 'id' | 'completed'>) => {
-    const newTask: Task = {
-      ...newTaskData,
-      id: Date.now().toString(),
-      completed: false,
-    };
-    setTasks(prevTasks => [...prevTasks, newTask]);
+  const handleSaveTask = (taskData: Omit<Task, 'id' | 'completed'>) => {
+    if (editingTask) {
+      setTasks(tasks.map(t => t.id === editingTask.id ? { ...t, ...taskData } : t));
+    } else {
+      const newTask: Task = {
+        ...taskData,
+        id: Date.now().toString(),
+        completed: false,
+      };
+      setTasks(prevTasks => [...prevTasks, newTask]);
+    }
+    setEditingTask(null);
+  };
+
+  const handleOpenEditDialog = (task: Task) => {
+    setEditingTask(task);
+    setIsTaskFormOpen(true);
+  };
+  
+  const handleCloseTaskForm = () => {
+    setIsTaskFormOpen(false);
+    setEditingTask(null);
   };
 
   const handleToggleComplete = (id: string, completed: boolean) => {
@@ -92,7 +108,7 @@ export default function TaskPage() {
     <div className="min-h-screen w-full bg-background flex flex-col">
       <Header onOpenTaskDialog={() => setIsTaskFormOpen(true)} />
       <main className="flex-1 w-full">
-        <div className="container py-8 px-4 flex flex-col items-center">
+        <div className="container mx-auto py-8 px-4 flex flex-col items-center">
           <div className="w-full max-w-4xl">
             <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
               <h1 className="text-3xl font-bold tracking-tight">Your Tasks</h1>
@@ -121,6 +137,7 @@ export default function TaskPage() {
                   tasks={todayTasks}
                   onToggleComplete={handleToggleComplete}
                   onDelete={handleDeleteTask}
+                  onEdit={handleOpenEditDialog}
                 />
               </TabsContent>
               <TabsContent value="upcoming" className="pt-6">
@@ -128,6 +145,7 @@ export default function TaskPage() {
                   tasks={upcomingTasks}
                   onToggleComplete={handleToggleComplete}
                   onDelete={handleDeleteTask}
+                  onEdit={handleOpenEditDialog}
                 />
               </TabsContent>
               <TabsContent value="completed" className="pt-6">
@@ -135,6 +153,7 @@ export default function TaskPage() {
                   tasks={completedTasks}
                   onToggleComplete={handleToggleComplete}
                   onDelete={handleDeleteTask}
+                  onEdit={handleOpenEditDialog}
                 />
               </TabsContent>
               <TabsContent value="all" className="pt-6">
@@ -142,6 +161,7 @@ export default function TaskPage() {
                   tasks={allTasks}
                   onToggleComplete={handleToggleComplete}
                   onDelete={handleDeleteTask}
+                  onEdit={handleOpenEditDialog}
                 />}
               </TabsContent>
             </Tabs>
@@ -150,8 +170,9 @@ export default function TaskPage() {
       </main>
       <TaskForm
         isOpen={isTaskFormOpen}
-        onClose={() => setIsTaskFormOpen(false)}
-        onSubmit={handleAddTask}
+        onClose={handleCloseTaskForm}
+        onSubmit={handleSaveTask}
+        task={editingTask}
       />
     </div>
   );

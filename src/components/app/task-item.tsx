@@ -1,7 +1,7 @@
 "use client"
 
 import { format } from "date-fns";
-import { Calendar, MoreVertical, Paperclip, Trash2 } from "lucide-react";
+import { Calendar, MoreVertical, Paperclip, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,9 +13,10 @@ interface TaskItemProps {
   task: Task;
   onToggleComplete: (id: string, completed: boolean) => void;
   onDelete: (id: string) => void;
+  onEdit: (task: Task) => void;
 }
 
-export function TaskItem({ task, onToggleComplete, onDelete }: TaskItemProps) {
+export function TaskItem({ task, onToggleComplete, onDelete, onEdit }: TaskItemProps) {
   return (
     <Card className={cn("transition-all", task.completed && "bg-muted/50")}>
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
@@ -37,6 +38,10 @@ export function TaskItem({ task, onToggleComplete, onDelete }: TaskItemProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onEdit(task)}>
+              <Pencil className="mr-2 h-4 w-4" />
+              <span>Edit</span>
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-destructive">
               <Trash2 className="mr-2 h-4 w-4" />
               <span>Delete</span>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -20,10 +20,12 @@ interface TaskFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (task: Omit<Task, 'id' | 'completed'>) => void;
+  task?: Task | null;
 }
 
-export function TaskForm({ isOpen, onClose, onSubmit }: TaskFormProps) {
+export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const isEditMode = !!task;
 
   const taskSchema = useMemo(() => {
     return z.object({
@@ -34,37 +36,52 @@ export function TaskForm({ isOpen, onClose, onSubmit }: TaskFormProps) {
     });
   }, []);
 
-
   type TaskFormValues = z.infer<typeof taskSchema>;
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
-    defaultValues: {
-      title: "",
-      notes: "",
-    },
   });
 
+  useEffect(() => {
+    if (isOpen) {
+      if (task) {
+        form.reset({
+          title: task.title,
+          date: task.date,
+          notes: task.notes || "",
+        });
+      } else {
+        form.reset({
+          title: "",
+          date: undefined,
+          notes: "",
+          attachment: undefined,
+        });
+      }
+    }
+  }, [isOpen, task, form]);
+
   const handleFormSubmit = (data: TaskFormValues) => {
-    const attachmentFilename = data.attachment?.[0]?.name;
-    onSubmit({ ...data, attachment: attachmentFilename });
-    form.reset();
+    const newAttachmentName = data.attachment?.[0]?.name;
+    const finalAttachment = newAttachmentName || task?.attachment;
+    onSubmit({ ...data, attachment: finalAttachment });
     onClose();
   };
   
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      form.reset();
+      onClose();
     }
-    onClose();
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Task</DialogTitle>
-          <DialogDescription>Fill in the details below to add a new task to your schedule.</DialogDescription>
+          <DialogTitle>{isEditMode ? 'Edit Task' : 'Add New Task'}</DialogTitle>
+          <DialogDescription>
+            {isEditMode ? "Update the details of your task." : "Fill in the details below to add a new task to your schedule."}
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
@@ -136,7 +153,7 @@ export function TaskForm({ isOpen, onClose, onSubmit }: TaskFormProps) {
              <FormField
               control={form.control}
               name="attachment"
-              render={({ field }) => (
+              render={({ field: { onChange, value, ...rest } }) => (
                 <FormItem>
                   <FormLabel>Attachment</FormLabel>
                   <FormControl>
@@ -144,10 +161,10 @@ export function TaskForm({ isOpen, onClose, onSubmit }: TaskFormProps) {
                       <Button asChild variant="outline" className="w-full justify-start font-normal text-muted-foreground">
                         <div>
                           <Paperclip className="mr-2 h-4 w-4"/>
-                          {field.value?.[0]?.name || "Attach a file"}
+                          {value?.[0]?.name || task?.attachment || "Attach a file"}
                         </div>
                       </Button>
-                      <Input className="absolute top-0 left-0 h-full w-full opacity-0 cursor-pointer" type="file" onChange={(e) => field.onChange(e.target.files)} />
+                      <Input className="absolute top-0 left-0 h-full w-full opacity-0 cursor-pointer" type="file" onChange={(e) => onChange(e.target.files)} {...rest} />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -156,7 +173,7 @@ export function TaskForm({ isOpen, onClose, onSubmit }: TaskFormProps) {
             />
             <DialogFooter className="pt-4">
               <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
-              <Button type="submit">Add Task</Button>
+              <Button type="submit">{isEditMode ? 'Save Changes' : 'Add Task'}</Button>
             </DialogFooter>
           </form>
         </Form>
