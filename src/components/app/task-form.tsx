@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Textarea } from "@/components/ui/textarea";
 import type { Task } from "@/lib/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface TaskFormProps {
   isOpen: boolean;
@@ -130,196 +131,200 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{isEditMode ? 'Edit Task' : 'Add New Task'}</DialogTitle>
-          <DialogDescription>
-            {isEditMode ? "Update the details of your task." : "Fill in the details below to add a new task to your schedule."}
-          </DialogDescription>
-        </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Task Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Complete project report" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem className="space-y-2">
-                  <FormLabel>Priority</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="flex space-x-4"
-                    >
-                      <FormItem className="flex items-center space-x-2 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="low" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Low</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-2 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="medium" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Medium</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-2 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="high" />
-                        </FormControl>
-                        <FormLabel className="font-normal">High</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Date</FormLabel>
-                  <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-                    <PopoverTrigger asChild>
+          <form onSubmit={form.handleSubmit(handleFormSubmit)}>
+            <DialogHeader>
+              <DialogTitle>{isEditMode ? 'Edit Task' : 'Add New Task'}</DialogTitle>
+              <DialogDescription>
+                {isEditMode ? "Update the details of your task." : "Fill in the details below to add a new task to your schedule."}
+              </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="max-h-[60vh] -mx-6 px-6">
+              <div className="py-4 space-y-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Task Title</FormLabel>
                       <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
+                        <Input placeholder="e.g., Complete project report" {...field} />
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={(date) => {
-                          field.onChange(date);
-                          setIsDatePickerOpen(false);
-                        }}
-                        disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Add any relevant notes..." className="resize-none" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="attachment"
-              render={({ field: { onChange, value, ...rest } }) => (
-                <FormItem>
-                  <FormLabel>Attachment</FormLabel>
-                   <FormControl>
-                    <div className="relative">
-                      <Button asChild variant="outline" className="w-full justify-start font-normal text-muted-foreground pr-10">
-                        <div>
-                          <Paperclip className="mr-2 h-4 w-4"/>
-                          {value?.[0]?.name || (!attachmentRemoved && task?.attachmentName) || "Attach a file"}
-                        </div>
-                      </Button>
-                      <Input 
-                        className="absolute top-0 left-0 h-full w-full opacity-0 cursor-pointer" 
-                        type="file" 
-                        onChange={(e) => {
-                          onChange(e.target.files)
-                          setAttachmentRemoved(false);
-                        }} 
-                        {...rest} 
-                      />
-                      {(value?.[0] || (!attachmentRemoved && task?.attachmentName)) && (
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                            onClick={() => {
-                                onChange(null);
-                                setAttachmentRemoved(true);
-                            }}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2">
+                      <FormLabel>Priority</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          className="flex space-x-4"
                         >
-                            <X className="h-4 w-4" />
-                            <span className="sr-only">Remove attachment</span>
-                        </Button>
-                      )}
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormItem>
-              <FormLabel>Reference Links</FormLabel>
-              <div className="space-y-2">
-                {fields.map((field, index) => (
-                  <div key={field.id} className="flex items-center gap-2">
-                    <LinkIcon className="h-4 w-4 text-muted-foreground" />
-                    <FormField
-                      control={form.control}
-                      name={`referenceLinks.${index}`}
-                      render={({ field }) => (
-                        <FormItem className="flex-grow">
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="low" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Low</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="medium" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Medium</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="high" />
+                            </FormControl>
+                            <FormLabel className="font-normal">High</FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Date</FormLabel>
+                      <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                        <PopoverTrigger asChild>
                           <FormControl>
-                            <Input placeholder="https://example.com" {...field} />
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
-                      <X className="h-4 w-4" />
-                      <span className="sr-only">Remove link</span>
-                    </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={(date) => {
+                              field.onChange(date);
+                              setIsDatePickerOpen(false);
+                            }}
+                            disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Add any relevant notes..." className="resize-none" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="attachment"
+                  render={({ field: { onChange, value, ...rest } }) => (
+                    <FormItem>
+                      <FormLabel>Attachment</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Button asChild variant="outline" className="w-full justify-start font-normal text-muted-foreground pr-10">
+                            <div>
+                              <Paperclip className="mr-2 h-4 w-4"/>
+                              {value?.[0]?.name || (!attachmentRemoved && task?.attachmentName) || "Attach a file"}
+                            </div>
+                          </Button>
+                          <Input 
+                            className="absolute top-0 left-0 h-full w-full opacity-0 cursor-pointer" 
+                            type="file" 
+                            onChange={(e) => {
+                              onChange(e.target.files)
+                              setAttachmentRemoved(false);
+                            }} 
+                            {...rest} 
+                          />
+                          {(value?.[0] || (!attachmentRemoved && task?.attachmentName)) && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                                onClick={() => {
+                                    onChange(null);
+                                    setAttachmentRemoved(true);
+                                }}
+                            >
+                                <X className="h-4 w-4" />
+                                <span className="sr-only">Remove attachment</span>
+                            </Button>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormItem>
+                  <FormLabel>Reference Links</FormLabel>
+                  <div className="space-y-2">
+                    {fields.map((field, index) => (
+                      <div key={field.id} className="flex items-center gap-2">
+                        <LinkIcon className="h-4 w-4 text-muted-foreground" />
+                        <FormField
+                          control={form.control}
+                          name={`referenceLinks.${index}`}
+                          render={({ field }) => (
+                            <FormItem className="flex-grow">
+                              <FormControl>
+                                <Input placeholder="https://example.com" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                          <X className="h-4 w-4" />
+                          <span className="sr-only">Remove link</span>
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => append("")}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Link
+                  </Button>
+                </FormItem>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="mt-2"
-                onClick={() => append("")}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add Link
-              </Button>
-            </FormItem>
+            </ScrollArea>
             <DialogFooter className="pt-4">
               <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
               <Button type="submit">{isEditMode ? 'Save Changes' : 'Add Task'}</Button>
