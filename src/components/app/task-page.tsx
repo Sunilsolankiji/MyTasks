@@ -23,6 +23,7 @@ import { z } from "zod";
 import { ExportDialog } from "./export-dialog";
 import { ImportPreviewDialog } from "./import-preview-dialog";
 import { WeatherInfo } from "./weather-info";
+import { WeatherEffect } from "./weather-effect";
 
 const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
 
@@ -112,7 +113,7 @@ export default function TaskPage() {
       if (storedLocation) {
         try {
             const parsedLocation = JSON.parse(storedLocation);
-            if(typeof parsedLocation === 'string') {
+            if(typeof parsedLocation === 'string' && parsedLocation) {
                 setLocation(parsedLocation);
             }
         } catch {
@@ -328,7 +329,8 @@ export default function TaskPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-transparent flex flex-col">
+    <div className="relative min-h-screen w-full flex flex-col bg-background">
+       {location && <WeatherEffect location={location} />}
       <Header 
         projectName={projectName}
         onOpenTaskDialog={() => setIsTaskFormOpen(true)}
