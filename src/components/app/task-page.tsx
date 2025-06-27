@@ -344,9 +344,14 @@ export default function TaskPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen w-full">
-      <Tabs defaultValue="all">
-        <div className="sticky top-0 z-10 border-b border-gray-200 bg-white/30 backdrop-blur-md dark:border-gray-700 dark:bg-gray-800/30">
+    <div className="flex flex-col min-h-screen w-full bg-background">
+      <Header 
+        projectName={projectName}
+        onOpenTaskDialog={() => setIsTaskFormOpen(true)}
+        onOpenSettingsDialog={() => setIsSettingsOpen(true)}
+      />
+      <Tabs defaultValue="all" className="flex flex-col flex-1">
+        <div className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-md">
           <div className="container mx-auto px-4 py-4">
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
               <div className="flex-1">
@@ -395,18 +400,13 @@ export default function TaskPage() {
           </div>
         </div>
 
-        <Header 
-          projectName={projectName}
-          onOpenTaskDialog={() => setIsTaskFormOpen(true)}
-          onOpenSettingsDialog={() => setIsSettingsOpen(true)}
-        />
         <main className="flex-1 w-full">
           <div className="container mx-auto py-8 px-4 flex flex-col items-center">
             <div className="w-full max-w-4xl">
               <div className="rounded-lg border bg-background/80 backdrop-blur-sm shadow-sm relative overflow-hidden">
                 {showWeatherWidget && <WeatherEffect location={location} />}
                 <div className="p-6">
-                    <TabsContent value="today" className="pt-6">
+                    <TabsContent value="today" className="mt-0">
                       {isLoading ? <TaskListSkeleton /> : <TaskList
                         tasks={todayTasks}
                         onToggleComplete={handleToggleComplete}
@@ -414,7 +414,7 @@ export default function TaskPage() {
                         onEdit={handleOpenEditDialog}
                       />}
                     </TabsContent>
-                    <TabsContent value="upcoming" className="pt-6">
+                    <TabsContent value="upcoming" className="mt-0">
                       {isLoading ? <TaskListSkeleton /> : <TaskList
                         tasks={upcomingTasks}
                         onToggleComplete={handleToggleComplete}
@@ -422,7 +422,7 @@ export default function TaskPage() {
                         onEdit={handleOpenEditDialog}
                       />}
                     </TabsContent>
-                    <TabsContent value="completed" className="pt-6">
+                    <TabsContent value="completed" className="mt-0">
                       {isLoading ? <TaskListSkeleton /> : <TaskList
                         tasks={completedTasks}
                         onToggleComplete={handleToggleComplete}
@@ -430,7 +430,7 @@ export default function TaskPage() {
                         onEdit={handleOpenEditDialog}
                       />}
                     </TabsContent>
-                    <TabsContent value="all" className="pt-6">
+                    <TabsContent value="all" className="mt-0">
                       {isLoading ? <TaskListSkeleton /> : <TaskList
                         tasks={allTasks}
                         onToggleComplete={handleToggleComplete}
