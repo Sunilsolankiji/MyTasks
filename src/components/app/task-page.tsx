@@ -24,6 +24,7 @@ import { ExportDialog } from "./export-dialog";
 import { ImportPreviewDialog } from "./import-preview-dialog";
 import { WeatherEffect } from "./weather-effect";
 import { WeatherWidget } from "./weather-widget";
+import { cn } from "@/lib/utils";
 
 const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
 
@@ -61,6 +62,7 @@ export default function TaskPage() {
   const [tasksToImport, setTasksToImport] = useState<Task[]>([]);
   const [location, setLocation] = useState<Location | null>(null);
   const [showWeatherWidget, setShowWeatherWidget] = useState(true);
+  const [isHeaderSticky, setIsHeaderSticky] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -130,6 +132,17 @@ export default function TaskPage() {
         localStorage.removeItem("showWeatherWidget");
       }
 
+      try {
+        const storedIsHeaderSticky = localStorage.getItem("isHeaderSticky");
+        if (storedIsHeaderSticky) {
+          setIsHeaderSticky(JSON.parse(storedIsHeaderSticky));
+        }
+      } catch (error) {
+        console.error("Failed to parse isHeaderSticky from local storage", error);
+        localStorage.removeItem("isHeaderSticky");
+      }
+
+
       setIsLoading(false);
     }
   }, []);
@@ -168,6 +181,12 @@ export default function TaskPage() {
       localStorage.setItem("showWeatherWidget", JSON.stringify(showWeatherWidget));
     }
   }, [showWeatherWidget, isLoading]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isLoading) {
+      localStorage.setItem("isHeaderSticky", JSON.stringify(isHeaderSticky));
+    }
+  }, [isHeaderSticky, isLoading]);
 
   const handleSaveTask = (taskData: Omit<Task, 'id' | 'completed' | 'creationDate' | 'completionDate'>) => {
     if (editingTask) {
@@ -349,9 +368,13 @@ export default function TaskPage() {
         projectName={projectName}
         onOpenTaskDialog={() => setIsTaskFormOpen(true)}
         onOpenSettingsDialog={() => setIsSettingsOpen(true)}
+        isSticky={isHeaderSticky}
       />
       <Tabs defaultValue="all" className="flex flex-col flex-1">
-        <div className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-md">
+        <div className={cn(
+          "sticky z-10 border-b bg-background/80 backdrop-blur-md",
+          isHeaderSticky ? "top-20" : "top-0"
+        )}>
           <div className="container mx-auto px-4 py-4">
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
               <div className="flex-1">
@@ -461,6 +484,8 @@ export default function TaskPage() {
         onLocationChange={setLocation}
         showWeatherWidget={showWeatherWidget}
         onToggleWeatherWidget={setShowWeatherWidget}
+        isHeaderSticky={isHeaderSticky}
+        onToggleHeaderSticky={setIsHeaderSticky}
       />
       <ExportDialog
         isOpen={isExportDialogOpen}
