@@ -143,8 +143,8 @@ export function SettingsDialog({
         setSuggestions(results);
       } catch (error) {
         toast({
-          title: "Error",
-          description: "Could not fetch location suggestions.",
+          title: "Location Search Failed",
+          description: error instanceof Error ? error.message : "An unknown error occurred.",
           variant: "destructive"
         })
         setSuggestions([]);

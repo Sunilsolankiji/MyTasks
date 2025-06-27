@@ -1,3 +1,4 @@
+
 'use server';
 
 import type { Location, WeatherData } from "@/lib/types";
@@ -7,7 +8,7 @@ const WEATHER_API_URL = 'https://api.weatherapi.com/v1';
 async function fetchWeatherAPI(endpoint: string, params: Record<string, string> = {}) {
     const apiKey = process.env.WEATHER_API_KEY;
     if (!apiKey) {
-        throw new Error("WEATHER_API_KEY is not set in the environment variables.");
+        throw new Error("The weather service has not been configured by the site owner.");
     }
 
     const url = new URL(`${WEATHER_API_URL}/${endpoint}`);
