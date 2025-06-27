@@ -53,7 +53,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
       } else {
         form.reset({
           title: "",
-          date: undefined,
+          date: new Date(),
           notes: "",
           attachment: undefined,
         });
@@ -104,7 +104,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
               name="date"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date (Optional)</FormLabel>
+                  <FormLabel>Date</FormLabel>
                   <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
