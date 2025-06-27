@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -33,6 +34,7 @@ import { cn } from "@/lib/utils";
 const settingsSchema = z.object({
   projectName: z.string().min(1, "Project name is required."),
   stickyHeader: z.boolean(),
+  stickyFilterBar: z.boolean(),
   location: z.string().optional(),
   showWeatherWidget: z.boolean(),
 });
@@ -50,6 +52,8 @@ interface SettingsDialogProps {
   onToggleWeatherWidget: (show: boolean) => void;
   isHeaderSticky: boolean;
   onToggleHeaderSticky: (sticky: boolean) => void;
+  isFilterBarSticky: boolean;
+  onToggleFilterBarSticky: (sticky: boolean) => void;
 }
 
 const Loader2 = ({ className }: { className?: string }) => (
@@ -83,10 +87,12 @@ export function SettingsDialog({
   onToggleWeatherWidget,
   isHeaderSticky,
   onToggleHeaderSticky,
+  isFilterBarSticky,
+  onToggleFilterBarSticky,
 }: SettingsDialogProps) {
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
-    defaultValues: { projectName, location: "", showWeatherWidget, stickyHeader: isHeaderSticky },
+    defaultValues: { projectName, location: "", showWeatherWidget, stickyHeader: isHeaderSticky, stickyFilterBar: isFilterBarSticky },
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -109,12 +115,13 @@ export function SettingsDialog({
         location: location?.name || "",
         showWeatherWidget: showWeatherWidget,
         stickyHeader: isHeaderSticky,
+        stickyFilterBar: isFilterBarSticky,
       });
       setInternalLocation(location);
       setSuggestions([]);
       setShowSuggestions(false);
     }
-  }, [projectName, isOpen, form, location, showWeatherWidget, isHeaderSticky]);
+  }, [projectName, isOpen, form, location, showWeatherWidget, isHeaderSticky, isFilterBarSticky]);
 
   const handleLocationSearch = useCallback((query: string) => {
     if (debounceTimeout.current) {
@@ -159,6 +166,7 @@ export function SettingsDialog({
 
     onUpdateProjectName(values.projectName);
     onToggleHeaderSticky(values.stickyHeader);
+    onToggleFilterBarSticky(values.stickyFilterBar);
     onLocationChange(values.showWeatherWidget ? internalLocation : null);
     onToggleWeatherWidget(values.showWeatherWidget);
     onClose();
@@ -243,6 +251,30 @@ export function SettingsDialog({
                               checked={field.value}
                               onCheckedChange={field.onChange}
                               aria-label="Toggle sticky header"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+
+                    <Separator />
+                    
+                    <FormField
+                      control={form.control}
+                      name="stickyFilterBar"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between">
+                          <div className="space-y-0.5">
+                            <FormLabel>Sticky Filter & Tabs</FormLabel>
+                            <p className="text-[0.8rem] text-muted-foreground">
+                                Keep filters and tabs visible when scrolling.
+                            </p>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              aria-label="Toggle sticky filter bar"
                             />
                           </FormControl>
                         </FormItem>

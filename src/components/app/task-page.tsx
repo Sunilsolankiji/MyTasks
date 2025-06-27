@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -63,6 +64,7 @@ export default function TaskPage() {
   const [location, setLocation] = useState<Location | null>(null);
   const [showWeatherWidget, setShowWeatherWidget] = useState(true);
   const [isHeaderSticky, setIsHeaderSticky] = useState(false);
+  const [isFilterBarSticky, setIsFilterBarSticky] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -141,6 +143,16 @@ export default function TaskPage() {
         console.error("Failed to parse isHeaderSticky from local storage", error);
         localStorage.removeItem("isHeaderSticky");
       }
+      
+      try {
+        const storedIsFilterBarSticky = localStorage.getItem("isFilterBarSticky");
+        if (storedIsFilterBarSticky) {
+          setIsFilterBarSticky(JSON.parse(storedIsFilterBarSticky));
+        }
+      } catch (error) {
+        console.error("Failed to parse isFilterBarSticky from local storage", error);
+        localStorage.removeItem("isFilterBarSticky");
+      }
 
 
       setIsLoading(false);
@@ -187,6 +199,12 @@ export default function TaskPage() {
       localStorage.setItem("isHeaderSticky", JSON.stringify(isHeaderSticky));
     }
   }, [isHeaderSticky, isLoading]);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isLoading) {
+      localStorage.setItem("isFilterBarSticky", JSON.stringify(isFilterBarSticky));
+    }
+  }, [isFilterBarSticky, isLoading]);
 
   const handleSaveTask = (taskData: Omit<Task, 'id' | 'completed' | 'creationDate' | 'completionDate'>) => {
     if (editingTask) {
@@ -372,8 +390,9 @@ export default function TaskPage() {
       />
       <Tabs defaultValue="all" className="flex flex-col flex-1">
         <div className={cn(
-          "sticky z-10 border-b bg-background/80 backdrop-blur-md",
-          isHeaderSticky ? "top-20" : "top-0"
+          "z-10 border-b bg-background/80 backdrop-blur-md",
+          isFilterBarSticky && "sticky",
+          isFilterBarSticky && (isHeaderSticky ? "top-20" : "top-0")
         )}>
           <div className="container mx-auto px-4 py-4">
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
@@ -486,6 +505,8 @@ export default function TaskPage() {
         onToggleWeatherWidget={setShowWeatherWidget}
         isHeaderSticky={isHeaderSticky}
         onToggleHeaderSticky={setIsHeaderSticky}
+        isFilterBarSticky={isFilterBarSticky}
+        onToggleFilterBarSticky={setIsFilterBarSticky}
       />
       <ExportDialog
         isOpen={isExportDialogOpen}
