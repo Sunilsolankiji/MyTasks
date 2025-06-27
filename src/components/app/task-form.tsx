@@ -16,7 +16,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Textarea } from "@/components/ui/textarea";
 import type { Task } from "@/lib/types";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface TaskFormProps {
   isOpen: boolean;
@@ -130,17 +129,17 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md p-0">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleFormSubmit)}>
-            <DialogHeader>
+          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="flex flex-col max-h-[90vh]">
+            <DialogHeader className="p-6 pb-4">
               <DialogTitle>{isEditMode ? 'Edit Task' : 'Add New Task'}</DialogTitle>
               <DialogDescription>
                 {isEditMode ? "Update the details of your task." : "Fill in the details below to add a new task to your schedule."}
               </DialogDescription>
             </DialogHeader>
-            <ScrollArea className="max-h-[60vh] -mx-6 px-6">
-              <div className="py-4 space-y-4">
+            <div className="flex-1 overflow-y-auto px-6">
+              <div className="space-y-4 py-4">
                 <FormField
                   control={form.control}
                   name="title"
@@ -324,8 +323,8 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
                   </Button>
                 </FormItem>
               </div>
-            </ScrollArea>
-            <DialogFooter className="pt-4">
+            </div>
+            <DialogFooter className="p-6 pt-4 border-t">
               <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
               <Button type="submit">{isEditMode ? 'Save Changes' : 'Add Task'}</Button>
             </DialogFooter>
