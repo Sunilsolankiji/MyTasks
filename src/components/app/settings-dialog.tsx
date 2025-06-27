@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "../ui/separator";
-import { Download, Upload, Loader2, MapPin, X } from "lucide-react";
+import { Upload, Download, Loader2, MapPin, X } from "lucide-react";
 import type { Location } from "@/lib/types";
 import { searchLocations } from "@/services/weather";
 import { useToast } from "@/hooks/use-toast";
@@ -171,9 +171,9 @@ export function SettingsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px] p-0">
+      <DialogContent className="sm:max-w-[425px] p-0 flex flex-col max-h-[90vh]">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col max-h-[90vh]">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0">
             <DialogHeader className="p-6 pb-4">
               <DialogTitle>Settings</DialogTitle>
               <DialogDescription>
@@ -295,11 +295,11 @@ export function SettingsDialog({
                   <FormLabel>Data Management</FormLabel>
                   <div className="flex gap-2">
                     <Button type="button" variant="outline" className="w-full" onClick={onExportClick}>
-                      <Download className="mr-2 h-4 w-4" />
+                      <Upload className="mr-2 h-4 w-4" />
                       Export
                     </Button>
                     <Button type="button" variant="outline" className="w-full" onClick={handleImportClick}>
-                      <Upload className="mr-2 h-4 w-4" />
+                      <Download className="mr-2 h-4 w-4" />
                       Import
                     </Button>
                     <input 
