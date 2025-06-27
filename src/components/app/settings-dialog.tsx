@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -23,7 +24,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "../ui/separator";
-import { Download, Upload, Loader2, MapPin, X } from "lucide-react";
+import { Upload, Download, Loader2, MapPin, X } from "lucide-react";
 import type { Location } from "@/lib/types";
 import { searchLocations } from "@/services/weather";
 import { useToast } from "@/hooks/use-toast";
@@ -98,11 +99,13 @@ export function SettingsDialog({
     if (!query) {
       setSuggestions([]);
       setShowSuggestions(false);
+      setIsSearching(false);
       return;
     }
     
+    setIsSearching(true);
+
     debounceTimeout.current = setTimeout(async () => {
-      setIsSearching(true);
       try {
         const results = await searchLocations(query);
         setSuggestions(results);
@@ -302,11 +305,11 @@ export function SettingsDialog({
                   <FormLabel>Data Management</FormLabel>
                   <div className="flex gap-2">
                     <Button type="button" variant="outline" className="w-full" onClick={onExportClick}>
-                      <Upload className="mr-2 h-4 w-4" />
+                      <Download className="mr-2 h-4 w-4" />
                       Export
                     </Button>
                     <Button type="button" variant="outline" className="w-full" onClick={handleImportClick}>
-                      <Download className="mr-2 h-4 w-4" />
+                      <Upload className="mr-2 h-4 w-4" />
                       Import
                     </Button>
                     <input 
