@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "../ui/separator";
-import { Upload, Download, Loader2, MapPin, X } from "lucide-react";
+import { Download, Upload, Loader2, MapPin, X } from "lucide-react";
 import type { Location } from "@/lib/types";
 import { searchLocations } from "@/services/weather";
 import { useToast } from "@/hooks/use-toast";
@@ -225,7 +225,14 @@ export function SettingsDialog({
                   {watchedShowWeather && (
                     <div className="space-y-2 pt-4 border-t">
                       <FormLabel>Weather Location</FormLabel>
-                      <div className="relative">
+                      <div 
+                        className="relative"
+                        onBlur={(e) => {
+                          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+                            setShowSuggestions(false);
+                          }
+                        }}
+                      >
                         <FormField
                           control={form.control}
                           name="location"
