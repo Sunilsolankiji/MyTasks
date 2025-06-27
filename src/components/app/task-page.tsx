@@ -8,6 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { TaskList } from "./task-list";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function TaskPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -15,6 +22,8 @@ export default function TaskPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [sortKey, setSortKey] = useState<'creationDate' | 'date'>('creationDate');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -77,14 +86,19 @@ export default function TaskPage() {
         task.title.toLowerCase().includes(searchTerm.toLowerCase())
       )
       .sort((a, b) => {
-        if (a.date && !b.date) return -1;
-        if (!a.date && b.date) return 1;
-        if (a.date && b.date) {
-          return a.date.getTime() - b.date.getTime();
+        const dir = sortDirection === 'asc' ? 1 : -1;
+
+        if (sortKey === 'date') {
+          if (a.date && !b.date) return -1;
+          if (!a.date && b.date) return 1;
+          if (!a.date && !b.date) return 0;
+          return (a.date!.getTime() - b.date!.getTime()) * dir;
         }
-        return 0;
+        
+        // Sort by creationDate
+        return (a.creationDate.getTime() - b.creationDate.getTime()) * dir;
       });
-  }, [tasks, searchTerm, isLoading]);
+  }, [tasks, searchTerm, isLoading, sortKey, sortDirection]);
 
   const todayTasks = useMemo(() => {
     if (isLoading) return [];
@@ -115,16 +129,34 @@ export default function TaskPage() {
           <div className="w-full max-w-4xl">
             <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
               <h1 className="text-3xl font-bold tracking-tight">Your Tasks</h1>
-              <div className="flex gap-2 w-full sm:w-auto">
-                <div className="relative w-full sm:w-64">
+              <div className="flex gap-2 w-full sm:w-auto flex-wrap justify-end">
+                <div className="relative w-full sm:w-auto sm:flex-grow">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search tasks..."
-                    className="pl-9"
+                    className="pl-9 w-full"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
+                <Select value={sortKey} onValueChange={(value: 'creationDate' | 'date') => setSortKey(value)}>
+                  <SelectTrigger className="w-full sm:w-[150px]">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="creationDate">Creation Date</SelectItem>
+                    <SelectItem value="date">Due Date</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={sortDirection} onValueChange={(value: 'asc' | 'desc') => setSortDirection(value)}>
+                  <SelectTrigger className="w-full sm:w-[120px]">
+                    <SelectValue placeholder="Direction" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="asc">Ascending</SelectItem>
+                    <SelectItem value="desc">Descending</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
