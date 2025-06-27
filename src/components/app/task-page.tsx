@@ -22,8 +22,6 @@ import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { ExportDialog } from "./export-dialog";
 import { ImportPreviewDialog } from "./import-preview-dialog";
-import { WeatherInfo } from "./weather-info";
-import { WeatherEffect } from "./weather-effect";
 
 const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
 
@@ -59,7 +57,6 @@ export default function TaskPage() {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isImportPreviewDialogOpen, setIsImportPreviewDialogOpen] = useState(false);
   const [tasksToImport, setTasksToImport] = useState<Task[]>([]);
-  const [location, setLocation] = useState("San Francisco, CA");
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -109,18 +106,6 @@ export default function TaskPage() {
         }
       }
       
-      const storedLocation = localStorage.getItem("location");
-      if (storedLocation) {
-        try {
-            const parsedLocation = JSON.parse(storedLocation);
-            if(typeof parsedLocation === 'string' && parsedLocation) {
-                setLocation(parsedLocation);
-            }
-        } catch {
-            // ignore
-        }
-      }
-
       setIsLoading(false);
     }
   }, []);
@@ -143,12 +128,6 @@ export default function TaskPage() {
       localStorage.setItem("projectName", JSON.stringify(projectName));
     }
   }, [projectName, isLoading]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !isLoading) {
-      localStorage.setItem("location", JSON.stringify(location));
-    }
-  }, [location, isLoading]);
 
   const handleSaveTask = (taskData: Omit<Task, 'id' | 'completed' | 'creationDate' | 'completionDate'>) => {
     if (editingTask) {
@@ -185,10 +164,6 @@ export default function TaskPage() {
 
   const handleUpdateProjectName = (name: string) => {
     setProjectName(name);
-  };
-
-  const handleUpdateLocation = (newLocation: string) => {
-    setLocation(newLocation);
   };
 
   const handleExportTasks = (tasksToExport: Task[]) => {
@@ -341,7 +316,6 @@ export default function TaskPage() {
             <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
               <h1 className="text-3xl font-bold tracking-tight">Your Tasks</h1>
               <div className="flex gap-4 w-full sm:w-auto flex-wrap justify-end items-center">
-                <WeatherInfo location={location} />
                 <div className="relative w-full sm:w-auto sm:flex-grow">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -375,9 +349,8 @@ export default function TaskPage() {
               </div>
             </div>
 
-            <div className="relative overflow-hidden rounded-lg border bg-background shadow-sm">
-              {location && <WeatherEffect location={location} />}
-              <div className="relative z-10 p-6">
+            <div className="rounded-lg border bg-background shadow-sm">
+              <div className="p-6">
                 <Tabs defaultValue="all">
                   <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="all">All</TabsTrigger>
@@ -436,8 +409,6 @@ export default function TaskPage() {
         onUpdateProjectName={handleUpdateProjectName}
         onExportClick={handleOpenExportDialog}
         onImportFileSelect={handleImportFileSelect}
-        location={location}
-        onUpdateLocation={handleUpdateLocation}
       />
       <ExportDialog
         isOpen={isExportDialogOpen}
