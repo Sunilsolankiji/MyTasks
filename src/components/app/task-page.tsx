@@ -329,8 +329,7 @@ export default function TaskPage() {
   }
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col">
-       {location && <WeatherEffect location={location} />}
+    <div className="flex flex-col min-h-screen w-full">
       <Header 
         projectName={projectName}
         onOpenTaskDialog={() => setIsTaskFormOpen(true)}
@@ -376,46 +375,51 @@ export default function TaskPage() {
               </div>
             </div>
 
-            <Tabs defaultValue="all">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="today">Today</TabsTrigger>
-                <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-                <TabsTrigger value="completed">Completed</TabsTrigger>
-              </TabsList>
-              <TabsContent value="today" className="pt-6">
-                {isLoading ? <TaskListSkeleton /> : <TaskList
-                  tasks={todayTasks}
-                  onToggleComplete={handleToggleComplete}
-                  onDelete={handleDeleteTask}
-                  onEdit={handleOpenEditDialog}
-                />}
-              </TabsContent>
-              <TabsContent value="upcoming" className="pt-6">
-                {isLoading ? <TaskListSkeleton /> : <TaskList
-                  tasks={upcomingTasks}
-                  onToggleComplete={handleToggleComplete}
-                  onDelete={handleDeleteTask}
-                  onEdit={handleOpenEditDialog}
-                />}
-              </TabsContent>
-              <TabsContent value="completed" className="pt-6">
-                {isLoading ? <TaskListSkeleton /> : <TaskList
-                  tasks={completedTasks}
-                  onToggleComplete={handleToggleComplete}
-                  onDelete={handleDeleteTask}
-                  onEdit={handleOpenEditDialog}
-                />}
-              </TabsContent>
-              <TabsContent value="all" className="pt-6">
-                {isLoading ? <TaskListSkeleton /> : <TaskList
-                  tasks={allTasks}
-                  onToggleComplete={handleToggleComplete}
-                  onDelete={handleDeleteTask}
-                  onEdit={handleOpenEditDialog}
-                />}
-              </TabsContent>
-            </Tabs>
+            <div className="relative overflow-hidden rounded-lg border bg-background shadow-sm">
+              {location && <WeatherEffect location={location} />}
+              <div className="relative z-10 p-6">
+                <Tabs defaultValue="all">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="all">All</TabsTrigger>
+                    <TabsTrigger value="today">Today</TabsTrigger>
+                    <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+                    <TabsTrigger value="completed">Completed</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="today" className="pt-6">
+                    {isLoading ? <TaskListSkeleton /> : <TaskList
+                      tasks={todayTasks}
+                      onToggleComplete={handleToggleComplete}
+                      onDelete={handleDeleteTask}
+                      onEdit={handleOpenEditDialog}
+                    />}
+                  </TabsContent>
+                  <TabsContent value="upcoming" className="pt-6">
+                    {isLoading ? <TaskListSkeleton /> : <TaskList
+                      tasks={upcomingTasks}
+                      onToggleComplete={handleToggleComplete}
+                      onDelete={handleDeleteTask}
+                      onEdit={handleOpenEditDialog}
+                    />}
+                  </TabsContent>
+                  <TabsContent value="completed" className="pt-6">
+                    {isLoading ? <TaskListSkeleton /> : <TaskList
+                      tasks={completedTasks}
+                      onToggleComplete={handleToggleComplete}
+                      onDelete={handleDeleteTask}
+                      onEdit={handleOpenEditDialog}
+                    />}
+                  </TabsContent>
+                  <TabsContent value="all" className="pt-6">
+                    {isLoading ? <TaskListSkeleton /> : <TaskList
+                      tasks={allTasks}
+                      onToggleComplete={handleToggleComplete}
+                      onDelete={handleDeleteTask}
+                      onEdit={handleOpenEditDialog}
+                    />}
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </div>
           </div>
         </div>
       </main>
