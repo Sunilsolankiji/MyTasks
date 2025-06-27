@@ -1,3 +1,5 @@
+export type Priority = 'low' | 'medium' | 'high';
+
 export interface Task {
   id: string;
   title: string;
@@ -8,4 +10,5 @@ export interface Task {
   attachmentName?: string;
   creationDate: Date;
   completionDate?: Date;
+  priority: Priority;
 }

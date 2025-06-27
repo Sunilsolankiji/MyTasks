@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Task } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { Badge } from "../ui/badge";
 
 interface TaskItemProps {
   task: Task;
@@ -30,6 +31,15 @@ export function TaskItem({ task, onToggleComplete, onDelete, onEdit }: TaskItemP
           <CardTitle className={cn("text-lg font-medium", task.completed && "line-through text-muted-foreground")}>
             {task.title}
           </CardTitle>
+          <Badge 
+            variant={
+              task.priority === 'high' ? 'destructive' : 
+              task.priority === 'medium' ? 'secondary' : 'outline'
+            }
+            className="capitalize"
+          >
+            {task.priority}
+          </Badge>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

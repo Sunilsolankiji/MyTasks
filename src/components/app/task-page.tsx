@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
-import type { Task } from "@/lib/types";
+import type { Task, Priority } from "@/lib/types";
 import { Header } from "./header";
 import { TaskForm } from "./task-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,13 +19,15 @@ import { Button } from "@/components/ui/button";
 import { TaskListSkeleton } from "./task-list-skeleton";
 import { SettingsDialog } from "./settings-dialog";
 
+const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
+
 export default function TaskPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [sortKey, setSortKey] = useState<'creationDate' | 'date' | 'title' | 'completionDate'>('creationDate');
+  const [sortKey, setSortKey] = useState<'creationDate' | 'date' | 'title' | 'completionDate' | 'priority'>('creationDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [projectName, setProjectName] = useState('My Tasks');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -36,6 +38,7 @@ export default function TaskPage() {
       if (storedTasks) {
         setTasks(JSON.parse(storedTasks).map((task: any) => ({
           ...task,
+          priority: task.priority || 'medium',
           date: task.date ? new Date(task.date) : undefined,
           creationDate: task.creationDate ? new Date(task.creationDate) : new Date(),
           completionDate: task.completionDate ? new Date(task.completionDate) : undefined,
@@ -139,6 +142,8 @@ export default function TaskPage() {
             if (!a.completionDate && b.completionDate) return 1 * dir;
             if (!a.completionDate && !b.completionDate) return 0;
             return (a.completionDate!.getTime() - b.completionDate!.getTime()) * dir;
+          case 'priority':
+            return (priorityOrder[b.priority] - priorityOrder[a.priority]) * dir;
           case 'creationDate':
           default:
             return (a.creationDate.getTime() - b.creationDate.getTime()) * dir;
@@ -187,7 +192,7 @@ export default function TaskPage() {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                    <Select value={sortKey} onValueChange={(value: 'creationDate' | 'date' | 'title' | 'completionDate') => setSortKey(value)}>
+                    <Select value={sortKey} onValueChange={(value: 'creationDate' | 'date' | 'title' | 'completionDate' | 'priority') => setSortKey(value)}>
                       <SelectTrigger className="w-full sm:w-auto">
                         <div className="flex items-center gap-1.5">
                             <ListFilter className="h-3.5 w-3.5" />
@@ -199,6 +204,7 @@ export default function TaskPage() {
                           <SelectItem value="date">Due Date</SelectItem>
                           <SelectItem value="title">Title</SelectItem>
                           <SelectItem value="completionDate">Completion Date</SelectItem>
+                          <SelectItem value="priority">Priority</SelectItem>
                       </SelectContent>
                     </Select>
                     <Button variant="outline" size="icon" onClick={() => setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}>

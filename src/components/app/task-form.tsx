@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import type { Task } from "@/lib/types";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface TaskFormProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
   const taskSchema = useMemo(() => {
     return z.object({
       title: z.string().min(1, "Title is required"),
+      priority: z.enum(['low', 'medium', 'high']),
       date: z.date().optional(),
       notes: z.string().optional(),
       attachment: z.any().optional(),
@@ -49,6 +51,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
       if (task) {
         form.reset({
           title: task.title,
+          priority: task.priority || 'medium',
           date: task.date,
           notes: task.notes || "",
           attachment: undefined,
@@ -56,6 +59,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
       } else {
         form.reset({
           title: "",
+          priority: 'medium',
           date: new Date(),
           notes: "",
           attachment: undefined,
@@ -99,6 +103,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
     
     onSubmit({
       title: data.title,
+      priority: data.priority,
       date: data.date,
       notes: data.notes,
       attachment: attachmentDataUrl,
@@ -138,6 +143,43 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
               )}
             />
             
+            <FormField
+              control={form.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel>Priority</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="flex space-x-4"
+                    >
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="low" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Low</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="medium" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Medium</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="high" />
+                        </FormControl>
+                        <FormLabel className="font-normal">High</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="date"
