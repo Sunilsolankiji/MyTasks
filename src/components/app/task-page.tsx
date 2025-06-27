@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
-import type { Task, Priority } from "@/lib/types";
+import type { Task, Priority, Location } from "@/lib/types";
 import { Header } from "./header";
 import { TaskForm } from "./task-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,6 +22,8 @@ import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { ExportDialog } from "./export-dialog";
 import { ImportPreviewDialog } from "./import-preview-dialog";
+import { WeatherEffect } from "./weather-effect";
+import { WeatherWidget } from "./weather-widget";
 
 const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
 
@@ -57,6 +59,7 @@ export default function TaskPage() {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isImportPreviewDialogOpen, setIsImportPreviewDialogOpen] = useState(false);
   const [tasksToImport, setTasksToImport] = useState<Task[]>([]);
+  const [location, setLocation] = useState<Location | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -105,6 +108,16 @@ export default function TaskPage() {
           setProjectName('My Tasks');
         }
       }
+
+      try {
+        const storedLocation = localStorage.getItem("location");
+        if (storedLocation) {
+          setLocation(JSON.parse(storedLocation));
+        }
+      } catch (error) {
+        console.error("Failed to parse location from local storage", error);
+        localStorage.removeItem("location");
+      }
       
       setIsLoading(false);
     }
@@ -128,6 +141,16 @@ export default function TaskPage() {
       localStorage.setItem("projectName", JSON.stringify(projectName));
     }
   }, [projectName, isLoading]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isLoading) {
+      if (location) {
+        localStorage.setItem("location", JSON.stringify(location));
+      } else {
+        localStorage.removeItem("location");
+      }
+    }
+  }, [location, isLoading]);
 
   const handleSaveTask = (taskData: Omit<Task, 'id' | 'completed' | 'creationDate' | 'completionDate'>) => {
     if (editingTask) {
@@ -314,7 +337,10 @@ export default function TaskPage() {
         <div className="container mx-auto py-8 px-4 flex flex-col items-center">
           <div className="w-full max-w-4xl">
             <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
-              <h1 className="text-3xl font-bold tracking-tight">Your Tasks</h1>
+              <div className="flex-1">
+                <h1 className="text-3xl font-bold tracking-tight">Your Tasks</h1>
+              </div>
+              <WeatherWidget location={location} />
               <div className="flex gap-4 w-full sm:w-auto flex-wrap justify-end items-center">
                 <div className="relative w-full sm:w-auto sm:flex-grow">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -349,7 +375,8 @@ export default function TaskPage() {
               </div>
             </div>
 
-            <div className="rounded-lg border bg-background shadow-sm">
+            <div className="rounded-lg border bg-background/80 backdrop-blur-sm shadow-sm relative overflow-hidden">
+               <WeatherEffect location={location} />
               <div className="p-6">
                 <Tabs defaultValue="all">
                   <TabsList className="grid w-full grid-cols-4">
@@ -409,6 +436,8 @@ export default function TaskPage() {
         onUpdateProjectName={handleUpdateProjectName}
         onExportClick={handleOpenExportDialog}
         onImportFileSelect={handleImportFileSelect}
+        location={location}
+        onLocationChange={setLocation}
       />
       <ExportDialog
         isOpen={isExportDialogOpen}

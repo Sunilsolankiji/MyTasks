@@ -82,3 +82,48 @@
     @apply text-foreground;
   }
 }
+
+@layer components {
+  .weather-effect {
+    @apply absolute inset-0 -z-10 overflow-hidden;
+  }
+
+  .rain-particle {
+    @apply absolute w-px h-12 bg-gradient-to-b from-transparent to-blue-300 dark:to-blue-200;
+    animation: rain-fall linear infinite;
+  }
+
+  @keyframes rain-fall {
+    from { transform: translateY(-100px); }
+    to { transform: translateY(100vh); }
+  }
+
+  .snow-particle {
+      @apply absolute rounded-full bg-white/80;
+      width: 5px;
+      height: 5px;
+      animation: snow-fall linear infinite;
+  }
+  
+  @keyframes snow-fall {
+    from {
+      transform: translateY(-10vh) translateX(0) rotate(0deg);
+    }
+    to {
+      transform: translateY(100vh) translateX(5vw) rotate(360deg);
+    }
+  }
+
+  .cloud-particle {
+    @apply absolute rounded-full bg-white/50 dark:bg-gray-400/20;
+    width: 200px;
+    height: 60px;
+    animation: cloud-drift linear infinite;
+    filter: blur(20px);
+  }
+
+  @keyframes cloud-drift {
+    from { transform: translateX(-250px); }
+    to { transform: translateX(100vw); }
+  }
+}

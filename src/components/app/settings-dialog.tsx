@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -23,10 +23,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "../ui/separator";
-import { Download, Upload } from "lucide-react";
+import { Download, Upload, Loader2, MapPin, X } from "lucide-react";
+import type { Location } from "@/lib/types";
+import { searchLocations } from "@/services/weather";
+import { useToast } from "@/hooks/use-toast";
 
 const settingsSchema = z.object({
   projectName: z.string().min(1, "Project name is required."),
+  location: z.string().optional(),
 });
 
 interface SettingsDialogProps {
@@ -36,24 +40,75 @@ interface SettingsDialogProps {
   onUpdateProjectName: (name: string) => void;
   onExportClick: () => void;
   onImportFileSelect: (file: File) => void;
+  location: Location | null;
+  onLocationChange: (location: Location | null) => void;
 }
 
-export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectName, onExportClick, onImportFileSelect }: SettingsDialogProps) {
+export function SettingsDialog({ 
+  isOpen, 
+  onClose, 
+  projectName, 
+  onUpdateProjectName, 
+  onExportClick, 
+  onImportFileSelect,
+  location,
+  onLocationChange
+}: SettingsDialogProps) {
   const form = useForm<z.infer<typeof settingsSchema>>({
     resolver: zodResolver(settingsSchema),
-    defaultValues: { projectName },
+    defaultValues: { projectName, location: "" },
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [suggestions, setSuggestions] = useState<Location[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const { toast } = useToast();
+  
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      form.reset({ projectName });
+      form.reset({ projectName, location: location?.name || "" });
+      setSuggestions([]);
+      setShowSuggestions(false);
     }
-  }, [projectName, isOpen, form]);
+  }, [projectName, isOpen, form, location]);
 
-  function onSubmit(values: z.infer<typeof settingsSchema>) {
+  const handleLocationSearch = useCallback((query: string) => {
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    if (!query) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    
+    debounceTimeout.current = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const results = await searchLocations(query);
+        setSuggestions(results);
+        setShowSuggestions(true);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Could not fetch location suggestions.",
+          variant: "destructive"
+        })
+        setSuggestions([]);
+        setShowSuggestions(false);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+  }, [toast]);
+  
+
+  const onSubmit = (values: z.infer<typeof settingsSchema>) => {
     onUpdateProjectName(values.projectName);
+    // Location is handled separately, via onLocationChange
     onClose();
   }
 
@@ -77,6 +132,17 @@ export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectNa
     }
   };
 
+  const handleSuggestionClick = (selectedLocation: Location) => {
+    onLocationChange(selectedLocation);
+    form.setValue('location', selectedLocation.name);
+    setShowSuggestions(false);
+  };
+
+  const handleClearLocation = () => {
+    onLocationChange(null);
+    form.setValue('location', '');
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -88,46 +154,111 @@ export function SettingsDialog({ isOpen, onClose, projectName, onUpdateProjectNa
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
-             <FormField
-                control={form.control}
-                name="projectName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Project Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+            <FormField
+              control={form.control}
+              name="projectName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Project Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Separator />
+            
+            <div className="space-y-2">
+              <FormLabel>Weather Location</FormLabel>
+              <div className="relative">
+                <FormField
+                  control={form.control}
+                  name="location"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <div className="relative">
+                           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                           <Input 
+                            {...field}
+                            placeholder="Search for a city..."
+                            className="pl-9"
+                            onChange={(e) => {
+                                field.onChange(e);
+                                handleLocationSearch(e.target.value);
+                            }}
+                            onFocus={() => {
+                                if (field.value) {
+                                    handleLocationSearch(field.value)
+                                }
+                            }}
+                            autoComplete="off"
+                          />
+                          {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
+                          {location && !isSearching && (
+                              <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                                  onClick={handleClearLocation}
+                              >
+                                  <X className="h-4 w-4" />
+                                  <span className="sr-only">Clear location</span>
+                              </Button>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute z-10 w-full bg-background border rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                    {suggestions.map((suggestion) => (
+                      <button
+                        type="button"
+                        key={suggestion.id}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-accent"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                      >
+                        {suggestion.name}, {suggestion.country}
+                      </button>
+                    ))}
+                  </div>
                 )}
-              />
-
-              <Separator />
-
-              <div className="space-y-2">
-                <FormLabel>Data Management</FormLabel>
-                <div className="flex gap-2">
-                  <Button type="button" variant="outline" className="w-full" onClick={onExportClick}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                  </Button>
-                  <Button type="button" variant="outline" className="w-full" onClick={handleImportClick}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Import
-                  </Button>
-                  <input 
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept=".json"
-                    onChange={handleFileChange}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">Select tasks to import or export.</p>
               </div>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-2">
+              <FormLabel>Data Management</FormLabel>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" className="w-full" onClick={onExportClick}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
+                </Button>
+                <Button type="button" variant="outline" className="w-full" onClick={handleImportClick}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Import
+                </Button>
+                <input 
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept=".json"
+                  onChange={handleFileChange}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">Select tasks to import or export.</p>
+            </div>
 
             <DialogFooter className="pt-4">
-               <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+              <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
               <Button type="submit">Save Changes</Button>
             </DialogFooter>
           </form>
