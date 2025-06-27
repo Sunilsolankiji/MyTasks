@@ -8,7 +8,7 @@ const Rain = () => (
     {[...Array(50)].map((_, i) => (
       <div
         key={i}
-        className="absolute bg-blue-300 rounded-full"
+        className="absolute bg-accent rounded-full"
         style={{
           width: '2px',
           height: '10px',
@@ -27,7 +27,7 @@ const Snow = () => (
     {[...Array(50)].map((_, i) => (
       <div
         key={i}
-        className="absolute bg-white rounded-full"
+        className="absolute bg-card rounded-full"
         style={{
           width: '4px',
           height: '4px',
@@ -76,7 +76,7 @@ export function WeatherEffect({ location }: { location: string }) {
   };
 
   return (
-    <div className="fixed inset-0 -z-50 pointer-events-none">
+    <div className="fixed inset-0 -z-50 pointer-events-none bg-background">
       {renderEffect()}
     </div>
   );
