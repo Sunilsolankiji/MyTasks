@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState, useMemo } from 'react';
@@ -69,16 +70,16 @@ export function WeatherEffect({ location }: { location: Location | null }) {
 
     return Array.from({ length: count }).map((_, i) => {
       const style: React.CSSProperties = {
-        left: `${Math.random() * 100}%`,
+        left: effectType === 'cloudy' ? '0' : `${Math.random() * 100}%`,
         top: `${Math.random() * 100}%`,
         animationDuration: `${effectType === 'cloudy' ? 20 + Math.random() * 20 : 0.5 + Math.random() * 0.5}s`,
         animationDelay: `${Math.random() * 5}s`,
         transform: `scale(${effectType === 'cloudy' ? 0.5 + Math.random() : 1})`,
-        opacity: effectType === 'cloudy' ? Math.random() * 0.3 : 0.6
+        opacity: effectType === 'cloudy' ? Math.random() * 0.4 + 0.1 : 0.6
       };
 
       if (effectType === 'rain' || effectType === 'snow') {
-        style.top = '-10%';
+        style.top = '-10vh';
       }
 
       if (effectType === 'snow') {
