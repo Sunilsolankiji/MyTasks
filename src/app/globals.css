@@ -117,11 +117,11 @@
   }
 
   .cloud-particle {
-    @apply absolute rounded-full bg-white/80 dark:bg-gray-400/40;
+    @apply absolute rounded-full bg-gray-400/50 dark:bg-gray-300/30;
     width: 200px;
     height: 60px;
     animation: cloud-drift linear infinite;
-    filter: blur(12px);
+    filter: blur(8px);
   }
 
   @keyframes cloud-drift {
