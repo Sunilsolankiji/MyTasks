@@ -101,10 +101,15 @@
   }
 
   .snow-particle {
-      @apply absolute rounded-full bg-white/80;
+      @apply absolute rounded-full;
       width: 5px;
       height: 5px;
       animation: snow-fall linear infinite;
+      background-color: hsl(var(--muted) / 0.8);
+  }
+  
+  .dark .snow-particle {
+      background-color: hsl(var(--foreground) / 0.8);
   }
   
   @keyframes snow-fall {
