@@ -86,6 +86,13 @@ export function WeatherEffect({ location }: { location: Location | null }) {
         style.opacity = Math.random();
         style.animationDuration = `${5 + Math.random() * 10}s`;
       }
+      
+      if (effectType === 'cloudy') {
+        style.left = '-250px';
+        (style as any)['--cloud-scale'] = 0.5 + Math.random();
+        delete style.transform;
+      }
+
 
       return (
         <div key={i} className={particleClass} style={style}></div>
