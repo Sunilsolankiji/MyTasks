@@ -77,6 +77,10 @@ export function WeatherEffect({ location }: { location: Location | null }) {
         opacity: effectType === 'cloudy' ? Math.random() * 0.3 : 0.6
       };
 
+      if (effectType === 'rain' || effectType === 'snow') {
+        style.top = '-10%';
+      }
+
       if (effectType === 'snow') {
         style.opacity = Math.random();
         style.animationDuration = `${5 + Math.random() * 10}s`;
