@@ -381,7 +381,8 @@ export default function TaskPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-background">
+    <div className="relative flex flex-col min-h-screen w-full bg-background">
+      {showWeatherWidget && <WeatherEffect location={location} />}
       <Header 
         projectName={projectName}
         onOpenTaskDialog={() => setIsTaskFormOpen(true)}
@@ -446,7 +447,6 @@ export default function TaskPage() {
           <div className="container mx-auto py-8 px-4 flex flex-col items-center">
             <div className="w-full max-w-4xl">
               <div className="rounded-lg border bg-background/80 backdrop-blur-sm shadow-sm relative overflow-hidden">
-                {showWeatherWidget && <WeatherEffect location={location} />}
                 <div className="p-6">
                     <TabsContent value="today" className="mt-0">
                       {isLoading ? <TaskListSkeleton /> : <TaskList

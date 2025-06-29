@@ -90,5 +90,5 @@ export function WeatherEffect({ location }: { location: Location | null }) {
   
   if (!effectType) return null;
 
-  return <div className={`weather-effect ${effectType}`}>{particles}</div>
+  return <div className={`weather-effect ${effectType} pointer-events-none`}>{particles}</div>
 }
