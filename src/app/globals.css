@@ -117,11 +117,40 @@
   }
 
   .cloud-particle {
-    @apply absolute rounded-full bg-gray-400/50 dark:bg-gray-300/30;
+    position: absolute;
     width: 200px;
     height: 60px;
+    border-radius: 60px;
+    background-color: rgba(156, 163, 175, 0.5); /* gray-400 with 50% opacity */
     animation: cloud-drift linear infinite;
     filter: blur(8px);
+  }
+
+  .dark .cloud-particle {
+    background-color: rgba(209, 213, 219, 0.3); /* gray-300 with 30% opacity */
+  }
+  
+  .cloud-particle::before,
+  .cloud-particle::after {
+    content: '';
+    position: absolute;
+    background: inherit;
+    border-radius: 50%;
+  }
+
+  .cloud-particle::before {
+    width: 100px;
+    height: 100px;
+    top: -50px;
+    left: 20px;
+  }
+
+  .cloud-particle::after {
+    width: 120px;
+    height: 120px;
+    top: -60px;
+    right: 20px;
+    z-index: -1;
   }
 
   @keyframes cloud-drift {
