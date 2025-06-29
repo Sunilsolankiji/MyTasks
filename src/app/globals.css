@@ -87,7 +87,7 @@
 
 @layer components {
   .weather-effect {
-    @apply absolute inset-0 overflow-hidden z-[25];
+    @apply absolute inset-0 overflow-hidden z-[25] pointer-events-none;
   }
 
   .rain-particle {
@@ -117,11 +117,11 @@
   }
 
   .cloud-particle {
-    @apply absolute rounded-full bg-white/80 dark:bg-gray-400/30;
+    @apply absolute rounded-full bg-white/80 dark:bg-gray-400/40;
     width: 200px;
     height: 60px;
     animation: cloud-drift linear infinite;
-    filter: blur(20px);
+    filter: blur(12px);
   }
 
   @keyframes cloud-drift {
