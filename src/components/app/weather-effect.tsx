@@ -42,15 +42,12 @@ export function WeatherEffect({ location }: { location: Location | null }) {
   const effectType = useMemo(() => {
     // To test an effect, hard-code it here (e.g., 'snow', 'rain', 'cloudy')
     // and comment out the logic below.
-    return 'snow';
     
-    /*
     if (!weatherCode) return null;
     if (WEATHER_CODES_RAIN.includes(weatherCode)) return 'rain';
     if (WEATHER_CODES_SNOW.includes(weatherCode)) return 'snow';
     if (WEATHER_CODES_CLOUDY.includes(weatherCode)) return 'cloudy';
     return null;
-    */
   }, [weatherCode]);
 
   const particles = useMemo(() => {
@@ -82,7 +79,6 @@ export function WeatherEffect({ location }: { location: Location | null }) {
 
       if (effectType === 'rain' || effectType === 'snow') {
         style.left = `${Math.random() * 100}vw`;
-        style.top = '-10vh';
         style.opacity = Math.random();
         if(effectType === 'rain'){
             style.opacity = 0.6;
@@ -94,7 +90,6 @@ export function WeatherEffect({ location }: { location: Location | null }) {
       }
       
       if (effectType === 'cloudy') {
-        style.left = '-250px';
         style.top = `${Math.random() * 100}%`;
         style.opacity = Math.random() * 0.7 + 0.2;
         (style as any)['--cloud-scale'] = 0.5 + Math.random();
