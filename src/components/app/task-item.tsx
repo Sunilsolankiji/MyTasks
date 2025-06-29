@@ -25,7 +25,7 @@ export function TaskItem({ task, onToggleComplete, onDelete, onEdit }: TaskItemP
   };
 
   return (
-    <Card className={cn("transition-all", task.completed && "bg-muted/50")}>
+    <Card className={cn("transition-all relative z-10", task.completed && "bg-muted/50")}>
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div className="flex items-center space-x-3">
           <Checkbox

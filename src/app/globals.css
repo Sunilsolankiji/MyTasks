@@ -87,7 +87,7 @@
 
 @layer components {
   .weather-effect {
-    @apply absolute inset-0 -z-10 overflow-hidden;
+    @apply absolute inset-0 overflow-hidden;
   }
 
   .rain-particle {

@@ -13,7 +13,7 @@ interface TaskListProps {
 export function TaskList({ tasks, onToggleComplete, onDelete, onEdit }: TaskListProps) {
   if (tasks.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 bg-muted/20 p-12 text-center">
+      <div className="relative z-10 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 bg-muted/20 p-12 text-center">
         <h3 className="text-xl font-medium">No Tasks Here!</h3>
         <p className="text-muted-foreground">You haven't added any tasks to this list yet.</p>
       </div>
