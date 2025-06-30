@@ -58,10 +58,10 @@ export interface WeatherData {
     cloud: number;
     feelslike_c: number;
     feelslike_f: number;
-    vis_km: number;
-    vis_miles: number;
     uv: number;
     gust_mph: number;
     gust_kph: number;
   };
 }
+
+export type WeatherEffectMode = 'dynamic' | 'all';

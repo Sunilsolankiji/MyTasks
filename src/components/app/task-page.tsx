@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
-import type { Task, Priority, Location, WeatherData } from "@/lib/types";
+import type { Task, Priority, Location, WeatherData, WeatherEffectMode } from "@/lib/types";
 import { Header } from "./header";
 import { TaskForm } from "./task-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -68,6 +68,7 @@ export default function TaskPage() {
   const [isFilterBarSticky, setIsFilterBarSticky] = useState(false);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [isWeatherLoading, setIsWeatherLoading] = useState(false);
+  const [weatherEffectMode, setWeatherEffectMode] = useState<WeatherEffectMode>('dynamic');
 
 
   useEffect(() => {
@@ -158,6 +159,19 @@ export default function TaskPage() {
         localStorage.removeItem("isFilterBarSticky");
       }
 
+      try {
+        const storedWeatherEffectMode = localStorage.getItem("weatherEffectMode");
+        if (storedWeatherEffectMode) {
+          const parsedMode = JSON.parse(storedWeatherEffectMode);
+          if (parsedMode === 'dynamic' || parsedMode === 'all') {
+            setWeatherEffectMode(parsedMode);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to parse weatherEffectMode from local storage", error);
+        localStorage.removeItem("weatherEffectMode");
+      }
+
 
       setIsLoading(false);
     }
@@ -238,6 +252,12 @@ export default function TaskPage() {
       localStorage.setItem("isFilterBarSticky", JSON.stringify(isFilterBarSticky));
     }
   }, [isFilterBarSticky, isLoading]);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isLoading) {
+      localStorage.setItem("weatherEffectMode", JSON.stringify(weatherEffectMode));
+    }
+  }, [weatherEffectMode, isLoading]);
 
   const handleSaveTask = (taskData: Omit<Task, 'id' | 'completed' | 'creationDate' | 'completionDate'>) => {
     if (editingTask) {
@@ -415,7 +435,7 @@ export default function TaskPage() {
 
   return (
     <div className="relative flex flex-col min-h-screen w-full bg-background">
-      {showWeatherWidget && <WeatherEffect weather={weather} />}
+      {showWeatherWidget && <WeatherEffect weather={weather} mode={weatherEffectMode} />}
       <Header 
         projectName={projectName}
         onOpenTaskDialog={() => setIsTaskFormOpen(true)}
@@ -540,6 +560,8 @@ export default function TaskPage() {
         onToggleHeaderSticky={setIsHeaderSticky}
         isFilterBarSticky={isFilterBarSticky}
         onToggleFilterBarSticky={setIsFilterBarSticky}
+        weatherEffectMode={weatherEffectMode}
+        onWeatherEffectModeChange={setWeatherEffectMode}
       />
       <ExportDialog
         isOpen={isExportDialogOpen}
