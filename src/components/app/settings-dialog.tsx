@@ -30,7 +30,7 @@ import { searchLocations } from "@/services/weather";
 import { useToast } from "@/hooks/use-toast";
 import { Switch } from "../ui/switch";
 import { cn } from "@/lib/utils";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const settingsSchema = z.object({
   projectName: z.string().min(1, "Project name is required."),
@@ -38,7 +38,7 @@ const settingsSchema = z.object({
   stickyFilterBar: z.boolean(),
   location: z.string().optional(),
   showWeatherWidget: z.boolean(),
-  weatherEffectMode: z.enum(['dynamic', 'all']),
+  weatherEffectMode: z.enum(['dynamic', 'all', 'sunny', 'windy', 'cloudy', 'rain', 'snow', 'none']),
 });
 
 interface SettingsDialogProps {
@@ -389,45 +389,36 @@ export function SettingsDialog({
 
                         <Separator />
 
-                        <div className="space-y-2">
-                          <FormLabel>Effects Display</FormLabel>
-                          <FormField
-                            control={form.control}
-                            name="weatherEffectMode"
-                            render={({ field }) => (
-                              <FormItem>
+                        <FormField
+                          control={form.control}
+                          name="weatherEffectMode"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Effects Display</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                  <RadioGroup
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                    className="space-y-1 pl-1"
-                                  >
-                                    <FormItem className="flex items-center space-x-2 space-y-0">
-                                      <FormControl>
-                                        <RadioGroupItem value="dynamic" />
-                                      </FormControl>
-                                      <FormLabel className="font-normal">
-                                        Dynamic
-                                      </FormLabel>
-                                    </FormItem>
-                                    <FormItem className="flex items-center space-x-2 space-y-0">
-                                      <FormControl>
-                                        <RadioGroupItem value="all" />
-                                      </FormControl>
-                                      <FormLabel className="font-normal">
-                                        Show all effects
-                                      </FormLabel>
-                                    </FormItem>
-                                  </RadioGroup>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select an effect" />
+                                  </SelectTrigger>
                                 </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <p className="text-[0.8rem] text-muted-foreground pl-1">
-                            Choose dynamic effects or show all for testing.
-                          </p>
-                        </div>
+                                <SelectContent>
+                                  <SelectItem value="dynamic">Dynamic</SelectItem>
+                                  <SelectItem value="none">None</SelectItem>
+                                  <SelectItem value="sunny">Sunny</SelectItem>
+                                  <SelectItem value="cloudy">Cloudy</SelectItem>
+                                  <SelectItem value="windy">Windy</SelectItem>
+                                  <SelectItem value="rain">Rain</SelectItem>
+                                  <SelectItem value="snow">Snow</SelectItem>
+                                  <SelectItem value="all">All (for testing)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <p className="text-[0.8rem] text-muted-foreground">
+                                Choose which weather effect to display.
+                              </p>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
                     )}
                   </div>

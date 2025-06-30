@@ -39,14 +39,14 @@ const createParticles = (effectType: 'rain' | 'snow' | 'cloudy' | 'windy' | 'sun
 
       if (effectType === 'rain') {
         style.left = `${Math.random() * 100}vw`;
-        style.transform = `translateY(-20vh)`;
+        style.transform = 'translateY(-20vh)';
         (style as any)['--start-y'] = '-20vh';
         style.animationDuration = `${0.5 + Math.random() * 0.5}s`;
       }
       
       if (effectType === 'snow') {
         style.left = `${Math.random() * 100}vw`;
-        style.transform = `translateY(-10vh)`;
+        style.transform = 'translateY(-10vh)';
         (style as any)['--start-y'] = '-10vh';
         style.animationDuration = `${5 + Math.random() * 10}s`;
       }
@@ -123,13 +123,15 @@ export function WeatherEffect({ weather, mode }: WeatherEffectProps) {
     );
   }
 
-  if (!dynamicEffectType) {
+  const effectToRender = mode === 'dynamic' ? dynamicEffectType : mode;
+
+  if (!effectToRender || effectToRender === 'none') {
     return null;
   }
 
   return (
-    <div className={`weather-effect ${dynamicEffectType}`}>
-      {createParticles(dynamicEffectType)}
+    <div className={`weather-effect ${effectToRender}`}>
+      {createParticles(effectToRender as any)}
     </div>
   );
 }

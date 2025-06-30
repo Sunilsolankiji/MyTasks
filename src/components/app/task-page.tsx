@@ -163,7 +163,8 @@ export default function TaskPage() {
         const storedWeatherEffectMode = localStorage.getItem("weatherEffectMode");
         if (storedWeatherEffectMode) {
           const parsedMode = JSON.parse(storedWeatherEffectMode);
-          if (parsedMode === 'dynamic' || parsedMode === 'all') {
+          const validModes: WeatherEffectMode[] = ['dynamic', 'all', 'sunny', 'windy', 'cloudy', 'rain', 'snow', 'none'];
+          if (validModes.includes(parsedMode)) {
             setWeatherEffectMode(parsedMode);
           }
         }
