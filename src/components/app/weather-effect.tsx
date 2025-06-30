@@ -37,7 +37,7 @@ export function WeatherEffect({ location }: { location: Location | null }) {
   }, [location]);
 
   const effectType = useMemo(() => {
-    return 'sunny'; // Temporarily hardcoded for testing
+    return 'windy'; // Temporarily hardcoded for testing
 
     if (!weatherData) return null;
     
@@ -88,10 +88,7 @@ export function WeatherEffect({ location }: { location: Location | null }) {
 
       if (effectType === 'rain' || effectType === 'snow') {
         style.left = `${Math.random() * 100}vw`;
-        style.top = '-10vh';
-        if(effectType === 'rain'){
-            style.opacity = 0.6;
-        }
+        style.animationDelay = `${Math.random() * 5}s`;
       }
       
       if (effectType === 'snow') {
@@ -109,7 +106,6 @@ export function WeatherEffect({ location }: { location: Location | null }) {
 
       if (effectType === 'windy') {
         style.left = `${Math.random() * 100}vw`;
-        style.top = '-10vh';
         style.animationDuration = `${5 + Math.random() * 5}s`;
         style.transform = `scale(${0.8 + Math.random() * 0.4})`;
         (style as any)['--leaf-end-x'] = `${Math.random() * 80 - 40}vw`;
