@@ -112,32 +112,32 @@
     width: 20px;
     height: 20px;
     animation-name: windy-leaf-animation;
-    animation-timing-function: ease-in-out;
+    animation-timing-function: linear; /* Use linear for smooth, constant speed */
     animation-iteration-count: infinite;
   }
   
   @keyframes windy-leaf-animation {
     0% {
-      transform: translateX(-30px) translateY(0) rotate(0deg);
+      transform: translateX(0) translateY(0) rotate(0deg);
       opacity: 0;
     }
     10% {
       opacity: 1;
     }
     25% {
-      transform: translateX(25vw) translateY(-5vh) rotate(180deg);
+      transform: translateX(calc(25vw + 15px)) translateY(-5vh) rotate(180deg);
     }
     50% {
-      transform: translateX(50vw) translateY(5vh) rotate(360deg);
+      transform: translateX(calc(50vw + 30px)) translateY(5vh) rotate(360deg);
     }
     75% {
-      transform: translateX(75vw) translateY(-3vh) rotate(540deg);
+      transform: translateX(calc(75vw + 45px)) translateY(-3vh) rotate(540deg);
     }
     90% {
       opacity: 1;
     }
     100% {
-      transform: translateX(calc(100vw + 30px)) translateY(2vh) rotate(720deg);
+      transform: translateX(calc(100vw + 60px)) translateY(2vh) rotate(720deg);
       opacity: 0;
     }
   }

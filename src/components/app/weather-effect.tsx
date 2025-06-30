@@ -87,15 +87,18 @@ export function WeatherEffect({ location }: { location: Location | null }) {
 
       if (effectType === 'rain') {
         style.left = `${Math.random() * 100}vw`;
+        (style as any)['--start-y'] = '-20vh'; // Start off-screen
         style.animationDuration = `${0.5 + Math.random() * 0.5}s`;
       }
       
       if (effectType === 'snow') {
         style.left = `${Math.random() * 100}vw`;
+        (style as any)['--start-y'] = '-10vh'; // Start off-screen
         style.animationDuration = `${5 + Math.random() * 10}s`;
       }
       
       if (effectType === 'cloudy') {
+        style.left = '-250px'; // Start off-screen
         style.top = `${-10 + Math.random() * 20}%`;
         style.opacity = Math.random() * 0.3 + 0.4;
         (style as any)['--cloud-scale'] = 0.5 + Math.random();
@@ -104,6 +107,7 @@ export function WeatherEffect({ location }: { location: Location | null }) {
       }
 
       if (effectType === 'windy') {
+        style.left = '-30px'; // Start off-screen
         style.top = `${Math.random() * 100}vh`;
         style.animationDuration = `${4 + Math.random() * 4}s`;
         style.transform = `scale(${0.8 + Math.random() * 0.4})`;
