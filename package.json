@@ -8,8 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d out -b static-build -t true"
+    "predeploy": "NODE_ENV=production npm run build",
+    "deploy": "gh-pages -d out -b static-build"
   },
   "homepage": "https://Sunilsolankiji.github.io/MyTasks",
   "dependencies": {
