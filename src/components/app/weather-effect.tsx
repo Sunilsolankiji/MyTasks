@@ -85,12 +85,14 @@ export function WeatherEffect({ location }: { location: Location | null }) {
 
       if (effectType === 'rain') {
         style.left = `${Math.random() * 100}vw`;
+        style.transform = `translateY(-20vh)`;
         (style as any)['--start-y'] = '-20vh'; // Start off-screen
         style.animationDuration = `${0.5 + Math.random() * 0.5}s`;
       }
       
       if (effectType === 'snow') {
         style.left = `${Math.random() * 100}vw`;
+        style.transform = `translateY(-10vh)`;
         (style as any)['--start-y'] = '-10vh'; // Start off-screen
         style.animationDuration = `${5 + Math.random() * 10}s`;
       }
