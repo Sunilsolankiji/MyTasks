@@ -87,7 +87,7 @@
 
 @layer components {
   .weather-effect {
-    @apply absolute inset-0 overflow-hidden z-[25] pointer-events-none;
+    @apply fixed inset-0 overflow-hidden z-[25] pointer-events-none;
   }
 
   .weather-effect.sunny {
