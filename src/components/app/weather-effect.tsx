@@ -37,8 +37,6 @@ export function WeatherEffect({ location }: { location: Location | null }) {
   }, [location]);
 
   const effectType = useMemo(() => {
-    return 'windy'; // Temporarily hardcoded for testing
-
     if (!weatherData) return null;
     
     const code = weatherData.current.condition.code;
@@ -100,7 +98,6 @@ export function WeatherEffect({ location }: { location: Location | null }) {
       if (effectType === 'cloudy') {
         style.left = '-250px'; // Start off-screen
         style.top = `${-10 + Math.random() * 20}%`;
-        style.opacity = Math.random() * 0.3 + 0.4;
         (style as any)['--cloud-scale'] = 0.5 + Math.random();
         style.animationDuration = `${20 + Math.random() * 20}s`;
         style.animationDelay = `${Math.random() * 10}s`;
