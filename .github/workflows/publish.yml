@@ -22,8 +22,21 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
 
-      - name: Setup Node.js ⚙️ - Cache dependencies ⚡ - Install dependencies 🔧
-        uses: ./.github/workflows/setup-node
+      - name: Setup Node.js ⚙️
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cache node_modules ⚡
+        uses: actions/cache@v3
+        id: cache-node-modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies 🔧
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci
 
       - name: Setup Pages ⚙️
         uses: actions/configure-pages@v4
