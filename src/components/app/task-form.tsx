@@ -6,7 +6,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Paperclip, X, Plus, Link as LinkIcon, Sparkles, Loader2, Shrink } from "lucide-react";
+import { Calendar as CalendarIcon, Paperclip, X, Plus, Link as LinkIcon, Sparkles, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -33,9 +33,9 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
   const isEditMode = !!task;
 
   const { toast } = useToast();
-  const { rewriterState, sessionState } = useOnDeviceAI();
-  const [isRewriting, setIsRewriting] = useState(false);
-  const [isSummarizing, setIsSummarizing] = useState(false);
+  const { rewriterState } = useOnDeviceAI();
+  const [isRewritingTitle, setIsRewritingTitle] = useState(false);
+  const [isRewritingNotes, setIsRewritingNotes] = useState(false);
 
   const taskSchema = useMemo(() => {
     return z.object({
@@ -62,8 +62,8 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
   useEffect(() => {
     if (isOpen) {
       setAttachmentRemoved(false);
-      setIsRewriting(false);
-      setIsSummarizing(false);
+      setIsRewritingTitle(false);
+      setIsRewritingNotes(false);
       if (task) {
         form.reset({
           title: task.title,
@@ -87,14 +87,14 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
   }, [isOpen, task, form]);
 
   const handleRewriteTitle = async () => {
-    if (rewriterState !== 'ready' || isRewriting || !window.ai) return;
+    if (rewriterState !== 'ready' || isRewritingTitle || !window.ai) return;
 
     const currentTitle = form.getValues('title');
     if (!currentTitle.trim()) {
       return;
     }
 
-    setIsRewriting(true);
+    setIsRewritingTitle(true);
     try {
       const rewriter = await window.ai.createTextRewriter();
       const result = await rewriter.rewrite(currentTitle);
@@ -109,36 +109,33 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
         variant: "destructive"
       })
     } finally {
-      setIsRewriting(false);
+      setIsRewritingTitle(false);
     }
   };
   
-  const handleSummarizeNotes = async () => {
-    if (sessionState !== 'ready' || isSummarizing || !window.ai) return;
+  const handleRewriteNotes = async () => {
+    if (rewriterState !== 'ready' || isRewritingNotes || !window.ai) return;
 
     const currentNotes = form.getValues('notes');
     if (!currentNotes || !currentNotes.trim()) {
       return;
     }
 
-    setIsSummarizing(true);
-    let session;
+    setIsRewritingNotes(true);
     try {
-      session = await window.ai.createTextSession();
-      const result = await session.prompt(`Summarize the following text:\n${currentNotes}`);
+      const rewriter = await window.ai.createTextRewriter();
+      const result = await rewriter.rewrite(currentNotes);
       form.setValue('notes', result.trim(), { shouldValidate: true });
+      rewriter.close();
     } catch (e) {
-      console.error("Failed to summarize notes:", e);
+      console.error("Failed to rewrite notes:", e);
       toast({
-          title: "AI Summarize Failed",
-          description: "Could not generate a summary. Please try again.",
+          title: "AI Rewrite Failed",
+          description: "Could not rewrite the notes. Please try again.",
           variant: "destructive"
       })
     } finally {
-      if (session) {
-        session.destroy();
-      }
-      setIsSummarizing(false);
+      setIsRewritingNotes(false);
     }
   };
 
@@ -222,10 +219,10 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
                                 size="icon"
                                 className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
                                 onClick={handleRewriteTitle}
-                                disabled={isRewriting || !field.value}
+                                disabled={isRewritingTitle || !field.value}
                                 title="Rewrite with AI"
                             >
-                                {isRewriting ? (
+                                {isRewritingTitle ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : (
                                     <Sparkles className="h-4 w-4" />
@@ -328,22 +325,22 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
                             className="resize-none pr-10" 
                             {...field} 
                           />
-                          {sessionState === 'ready' && (
+                          {rewriterState === 'ready' && (
                             <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
                                 className="absolute right-1 top-1.5 h-8 w-8"
-                                onClick={handleSummarizeNotes}
-                                disabled={isSummarizing || !field.value}
-                                title="Summarize with AI"
+                                onClick={handleRewriteNotes}
+                                disabled={isRewritingNotes || !field.value}
+                                title="Rewrite with AI"
                             >
-                                {isSummarizing ? (
+                                {isRewritingNotes ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : (
-                                    <Shrink className="h-4 w-4" />
+                                    <Sparkles className="h-4 w-4" />
                                 )}
-                                <span className="sr-only">Summarize with AI</span>
+                                <span className="sr-only">Rewrite with AI</span>
                             </Button>
                           )}
                         </div>
