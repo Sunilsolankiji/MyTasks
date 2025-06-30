@@ -1,5 +1,6 @@
 const nextConfig = {
-  /* config options here */
+  output: 'export',
+  basePath: '/MyTasks',
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -7,6 +8,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
