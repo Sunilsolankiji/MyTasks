@@ -6,7 +6,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Paperclip, X, Plus, Link as LinkIcon, Sparkles, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, Paperclip, X, Plus, Link as LinkIcon, Sparkles, Loader2, Shrink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -33,9 +33,9 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
   const isEditMode = !!task;
 
   const { toast } = useToast();
-  const { aiState } = useOnDeviceAI();
+  const { rewriterState, sessionState } = useOnDeviceAI();
   const [isRewriting, setIsRewriting] = useState(false);
-  const [isRewritingNotes, setIsRewritingNotes] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
 
   const taskSchema = useMemo(() => {
     return z.object({
@@ -63,7 +63,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
     if (isOpen) {
       setAttachmentRemoved(false);
       setIsRewriting(false);
-      setIsRewritingNotes(false);
+      setIsSummarizing(false);
       if (task) {
         form.reset({
           title: task.title,
@@ -87,7 +87,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
   }, [isOpen, task, form]);
 
   const handleRewriteTitle = async () => {
-    if (aiState !== 'ready' || isRewriting || !window.ai) return;
+    if (rewriterState !== 'ready' || isRewriting || !window.ai) return;
 
     const currentTitle = form.getValues('title');
     if (!currentTitle.trim()) {
@@ -113,30 +113,32 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
     }
   };
   
-  const handleRewriteNotes = async () => {
-    if (aiState !== 'ready' || isRewritingNotes || !window.ai) return;
+  const handleSummarizeNotes = async () => {
+    if (sessionState !== 'ready' || isSummarizing || !window.ai) return;
 
     const currentNotes = form.getValues('notes');
     if (!currentNotes || !currentNotes.trim()) {
       return;
     }
 
-    setIsRewritingNotes(true);
+    setIsSummarizing(true);
+    let session;
     try {
-      const rewriter = await window.ai.createTextRewriter();
-      const result = await rewriter.rewrite(currentNotes);
-
+      session = await window.ai.createTextSession();
+      const result = await session.prompt(`Summarize the following text:\n${currentNotes}`);
       form.setValue('notes', result.trim(), { shouldValidate: true });
-      rewriter.close();
     } catch (e) {
-      console.error("Failed to rewrite notes:", e);
+      console.error("Failed to summarize notes:", e);
       toast({
-        title: "AI Rewrite Failed",
-        description: "Could not generate new notes. Please try again.",
-        variant: "destructive"
+          title: "AI Summarize Failed",
+          description: "Could not generate a summary. Please try again.",
+          variant: "destructive"
       })
     } finally {
-      setIsRewritingNotes(false);
+      if (session) {
+        session.destroy();
+      }
+      setIsSummarizing(false);
     }
   };
 
@@ -213,7 +215,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
                       <FormControl>
                         <div className="relative">
                           <Input placeholder="e.g., Complete project report" {...field} />
-                          {aiState === 'ready' && (
+                          {rewriterState === 'ready' && (
                             <Button
                                 type="button"
                                 variant="ghost"
@@ -326,22 +328,22 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
                             className="resize-none pr-10" 
                             {...field} 
                           />
-                          {aiState === 'ready' && (
+                          {sessionState === 'ready' && (
                             <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
                                 className="absolute right-1 top-1.5 h-8 w-8"
-                                onClick={handleRewriteNotes}
-                                disabled={isRewritingNotes || !field.value}
-                                title="Rewrite with AI"
+                                onClick={handleSummarizeNotes}
+                                disabled={isSummarizing || !field.value}
+                                title="Summarize with AI"
                             >
-                                {isRewritingNotes ? (
+                                {isSummarizing ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : (
-                                    <Sparkles className="h-4 w-4" />
+                                    <Shrink className="h-4 w-4" />
                                 )}
-                                <span className="sr-only">Rewrite with AI</span>
+                                <span className="sr-only">Summarize with AI</span>
                             </Button>
                           )}
                         </div>
