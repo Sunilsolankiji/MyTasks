@@ -82,21 +82,20 @@ export function WeatherEffect({ location }: { location: Location | null }) {
 
     return Array.from({ length: count }).map((_, i) => {
       const style: React.CSSProperties = {
-        animationDuration: `${effectType === 'cloudy' ? 20 + Math.random() * 20 : 0.5 + Math.random() * 0.5}s`,
         animationDelay: `${Math.random() * 5}s`,
       };
 
-      if (effectType === 'rain' || effectType === 'snow') {
+      if (effectType === 'rain') {
         style.left = `${Math.random() * 100}vw`;
-        style.animationDelay = `${Math.random() * 5}s`;
+        style.animationDuration = `${0.5 + Math.random() * 0.5}s`;
       }
       
       if (effectType === 'snow') {
+        style.left = `${Math.random() * 100}vw`;
         style.animationDuration = `${5 + Math.random() * 10}s`;
       }
       
       if (effectType === 'cloudy') {
-        style.left = '-250px';
         style.top = `${-10 + Math.random() * 20}%`;
         style.opacity = Math.random() * 0.3 + 0.4;
         (style as any)['--cloud-scale'] = 0.5 + Math.random();
@@ -105,10 +104,9 @@ export function WeatherEffect({ location }: { location: Location | null }) {
       }
 
       if (effectType === 'windy') {
-        style.left = `${Math.random() * 100}vw`;
-        style.animationDuration = `${5 + Math.random() * 5}s`;
+        style.top = `${Math.random() * 100}vh`;
+        style.animationDuration = `${4 + Math.random() * 4}s`;
         style.transform = `scale(${0.8 + Math.random() * 0.4})`;
-        (style as any)['--leaf-end-x'] = `${Math.random() * 80 - 40}vw`;
         return <Leaf key={i} className={particleClass} style={style} />;
       }
 

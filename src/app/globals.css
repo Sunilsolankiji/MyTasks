@@ -111,15 +111,24 @@
     @apply absolute text-green-600 dark:text-green-400;
     width: 20px;
     height: 20px;
-    animation: leaf-fall linear infinite;
+    animation-name: windy-leaf-animation;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
   }
-  @keyframes leaf-fall {
+  
+  @keyframes windy-leaf-animation {
     from {
-      transform: translateY(-10vh) translateX(0) rotate(0deg);
+      transform: translateX(-30px) rotate(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
       opacity: 1;
     }
     to {
-      transform: translateY(120vh) translateX(var(--leaf-end-x, 20vw)) rotate(720deg);
+      transform: translateX(calc(100vw + 30px)) rotate(720deg);
       opacity: 0;
     }
   }
