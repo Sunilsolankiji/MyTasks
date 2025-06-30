@@ -29,3 +29,6 @@ jobs:
 
       - name: Deploy
         run: npm run deploy
+        env:
+          # This token is provided by GitHub Actions
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
