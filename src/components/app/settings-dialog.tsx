@@ -394,7 +394,7 @@ export function SettingsDialog({
                           name="weatherEffectMode"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Effects Display</FormLabel>
+                              <FormLabel>Weather Effects</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
