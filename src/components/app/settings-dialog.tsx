@@ -409,7 +409,7 @@ export function SettingsDialog({
                                   <SelectItem value="windy">Windy</SelectItem>
                                   <SelectItem value="rain">Rain</SelectItem>
                                   <SelectItem value="snow">Snow</SelectItem>
-                                  <SelectItem value="all">All (for testing)</SelectItem>
+                                  <SelectItem value="all">All</SelectItem>
                                 </SelectContent>
                               </Select>
                               <p className="text-[0.8rem] text-muted-foreground">
@@ -460,3 +460,5 @@ export function SettingsDialog({
     </Dialog>
   );
 }
+
+    
