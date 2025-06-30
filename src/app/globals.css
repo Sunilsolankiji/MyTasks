@@ -91,16 +91,16 @@
   }
 
   .weather-effect.sunny {
-    @apply top-8 right-8 w-24 h-24;
+    @apply top-[-4rem] right-[-4rem] w-48 h-48;
   }
   .sun-particle {
-    @apply absolute w-full h-full rounded-full bg-yellow-400/80;
+    @apply absolute w-full h-full;
+    background: radial-gradient(circle, rgba(255, 235, 153, 0.8) 0%, rgba(255, 210, 0, 0.6) 40%, rgba(251, 191, 36, 0) 70%);
+    border-radius: 50%;
     animation: sun-pulse 4s infinite ease-in-out;
-    box-shadow: 0 0 20px 10px hsl(45 93% 57% / 0.5);
   }
   .dark .sun-particle {
-    background-color: hsl(48 96% 65% / 0.7);
-    box-shadow: 0 0 30px 15px hsl(48 96% 65% / 0.4);
+    background: radial-gradient(circle, rgba(255, 245, 204, 0.7) 0%, rgba(255, 220, 77, 0.5) 40%, rgba(251, 191, 36, 0) 70%);
   }
   @keyframes sun-pulse {
     0%, 100% { transform: scale(1); opacity: 0.8; }
@@ -115,7 +115,7 @@
   }
   @keyframes leaf-fall {
     from {
-      transform: translateY(0) translateX(0) rotate(0deg);
+      transform: translateY(-10vh) translateX(0) rotate(0deg);
       opacity: 1;
     }
     to {
@@ -130,7 +130,7 @@
   }
 
   @keyframes rain-fall {
-    from { transform: translateY(0); }
+    from { transform: translateY(-20vh); }
     to { transform: translateY(120vh); }
   }
 
@@ -148,7 +148,7 @@
   
   @keyframes snow-fall {
     from {
-      transform: translateY(0) translateX(0) rotate(0deg);
+      transform: translateY(-10vh) translateX(0) rotate(0deg);
     }
     to {
       transform: translateY(120vh) translateX(5vw) rotate(360deg);
@@ -160,12 +160,12 @@
     width: 200px;
     height: 60px;
     border-radius: 60px;
-    background-color: rgba(209, 213, 219, 0.7); /* gray-300 with 70% opacity */
+    background-color: rgba(255, 255, 255, 0.9);
     animation: cloud-drift linear infinite;
   }
 
   .dark .cloud-particle {
-    background-color: rgba(107, 114, 128, 0.5); /* gray-500 with 50% opacity */
+    background-color: rgba(156, 163, 175, 0.6);
   }
   
   .cloud-particle::before,
@@ -192,8 +192,8 @@
   }
 
   @keyframes cloud-drift {
-    from { left: -250px; }
-    to { left: 100vw; }
+    from { transform: translateX(-250px); }
+    to { transform: translateX(100vw); }
   }
 
   .loader-spin {
