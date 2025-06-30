@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
-import type { Task, Priority, Location } from "@/lib/types";
+import type { Task, Priority, Location, WeatherData } from "@/lib/types";
 import { Header } from "./header";
 import { TaskForm } from "./task-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,6 +26,7 @@ import { ImportPreviewDialog } from "./import-preview-dialog";
 import { WeatherEffect } from "./weather-effect";
 import { WeatherWidget } from "./weather-widget";
 import { cn } from "@/lib/utils";
+import { getWeatherData } from "@/services/weather";
 
 const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
 
@@ -65,6 +66,9 @@ export default function TaskPage() {
   const [showWeatherWidget, setShowWeatherWidget] = useState(true);
   const [isHeaderSticky, setIsHeaderSticky] = useState(false);
   const [isFilterBarSticky, setIsFilterBarSticky] = useState(false);
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [isWeatherLoading, setIsWeatherLoading] = useState(false);
+
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -158,6 +162,35 @@ export default function TaskPage() {
       setIsLoading(false);
     }
   }, []);
+  
+  useEffect(() => {
+    if (!location || !showWeatherWidget) {
+      setWeather(null);
+      return;
+    }
+
+    const fetchWeather = async () => {
+      setIsWeatherLoading(true);
+      try {
+        const data = await getWeatherData(`${location.lat},${location.lon}`);
+        setWeather(data);
+      } catch (err) {
+        toast({
+          title: "Weather Error",
+          description: err instanceof Error ? err.message : "Failed to fetch weather data.",
+          variant: "destructive"
+        });
+        setWeather(null);
+      } finally {
+        setIsWeatherLoading(false);
+      }
+    };
+
+    fetchWeather();
+    const interval = setInterval(fetchWeather, 15 * 60 * 1000); // every 15 mins
+
+    return () => clearInterval(interval);
+  }, [location, showWeatherWidget, toast]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !isLoading) {
@@ -382,7 +415,7 @@ export default function TaskPage() {
 
   return (
     <div className="relative flex flex-col min-h-screen w-full bg-background">
-      {showWeatherWidget && <WeatherEffect location={location} />}
+      {showWeatherWidget && <WeatherEffect weather={weather} />}
       <Header 
         projectName={projectName}
         onOpenTaskDialog={() => setIsTaskFormOpen(true)}
@@ -400,7 +433,7 @@ export default function TaskPage() {
               <div className="flex-1">
                 <h1 className="text-3xl font-bold tracking-tight">Your Tasks</h1>
               </div>
-              {showWeatherWidget && <WeatherWidget location={location} />}
+              {showWeatherWidget && <WeatherWidget location={location} weather={weather} isLoading={isWeatherLoading} />}
               <div className="flex gap-4 w-full sm:w-auto flex-wrap justify-end items-center">
                 <div className="relative w-full sm:w-auto sm:flex-grow">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

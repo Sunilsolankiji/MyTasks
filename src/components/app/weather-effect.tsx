@@ -1,8 +1,9 @@
+
 "use client"
 
 import { useMemo } from 'react';
 import { Leaf } from 'lucide-react';
-import type { Location } from '@/lib/types';
+import type { WeatherData } from '@/lib/types';
 
 const createParticles = (effectType: 'rain' | 'snow' | 'cloudy' | 'windy' | 'sunny' | null) => {
     if (!effectType) return [];
@@ -73,23 +74,53 @@ const createParticles = (effectType: 'rain' | 'snow' | 'cloudy' | 'windy' | 'sun
     });
 };
 
-export function WeatherEffect({ location }: { location: Location | null }) {
-  const allEffectTypes: ('rain' | 'snow' | 'cloudy' | 'windy' | 'sunny')[] = ['rain', 'snow', 'cloudy', 'windy', 'sunny'];
+export function WeatherEffect({ weather }: { weather: WeatherData | null }) {
+  const effectType = useMemo((): 'rain' | 'snow' | 'cloudy' | 'windy' | 'sunny' | null => {
+    if (!weather) return null;
 
-  const allEffects = useMemo(() => {
-    return allEffectTypes.map(type => ({
-      type,
-      particles: createParticles(type)
-    }));
-  }, []);
+    const code = weather.current.condition.code;
+    const isDay = weather.current.is_day;
+    const windKph = weather.current.wind_kph;
+    const conditionText = weather.current.condition.text.toLowerCase();
+    
+    // Weather condition codes from WeatherAPI
+    // Windy
+    if (windKph > 29 || conditionText.includes('blizzard') || conditionText.includes('gale')) {
+        return 'windy';
+    }
+    // Rain
+    if ( (code >= 1150 && code <= 1201) || (code >= 1240 && code <= 1252) || code === 1063 ) {
+      return 'rain';
+    }
+    // Snow
+    if ( (code >= 1204 && code <= 1237) || (code >= 1255 && code <= 1264) || code === 1066 ) {
+      return 'snow';
+    }
+    // Thunder
+    if (code >= 1273 && code <= 1282) {
+      return 'rain';
+    }
+    // Cloudy
+    if (code === 1003 || code === 1006 || code === 1009) {
+      return 'cloudy';
+    }
+    // Sunny/Clear
+    if (code === 1000 && isDay) {
+      return 'sunny';
+    }
+
+    return null; // Default to no effect
+  }, [weather]);
+
+  const particles = useMemo(() => createParticles(effectType), [effectType]);
+  
+  if (!effectType) {
+    return null;
+  }
 
   return (
-    <>
-      {allEffects.map(effect => (
-        <div key={effect.type} className={`weather-effect ${effect.type}`}>
-          {effect.particles}
-        </div>
-      ))}
-    </>
+    <div className={`weather-effect ${effectType}`}>
+      {particles}
+    </div>
   );
 }

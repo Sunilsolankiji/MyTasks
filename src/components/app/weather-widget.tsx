@@ -1,48 +1,17 @@
+
 "use client";
 
-import { useEffect, useState } from "react";
 import { Loader2, MapPin, Droplets, Wind } from "lucide-react";
 import type { Location, WeatherData } from "@/lib/types";
-import { getWeatherData } from "@/services/weather";
 import Image from "next/image";
 
 interface WeatherWidgetProps {
     location: Location | null;
+    weather: WeatherData | null;
+    isLoading: boolean;
 }
 
-export function WeatherWidget({ location }: WeatherWidgetProps) {
-    const [weather, setWeather] = useState<WeatherData | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (!location) {
-            setWeather(null);
-            setError(null);
-            return;
-        }
-
-        const fetchWeather = async () => {
-            setIsLoading(true);
-            setError(null);
-            try {
-                const data = await getWeatherData(`${location.lat},${location.lon}`);
-                setWeather(data);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : "Failed to fetch weather.");
-                setWeather(null);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchWeather();
-        const interval = setInterval(fetchWeather, 15 * 60 * 1000); // every 15 mins
-
-        return () => clearInterval(interval);
-
-    }, [location]);
-
+export function WeatherWidget({ location, weather, isLoading }: WeatherWidgetProps) {
     if (!location) {
         return null;
     }
@@ -56,14 +25,6 @@ export function WeatherWidget({ location }: WeatherWidgetProps) {
         );
     }
     
-    if (error) {
-        return (
-             <div className="flex items-center gap-2 text-sm text-destructive p-2 rounded-lg bg-destructive/10">
-                <span>{error}</span>
-            </div>
-        )
-    }
-
     if (!weather) {
         return null;
     }
