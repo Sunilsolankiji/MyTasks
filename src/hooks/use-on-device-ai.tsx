@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -9,22 +10,22 @@ export function useOnDeviceAI() {
 
   useEffect(() => {
     async function checkAI() {
-      if (typeof window === 'undefined' || !window.ai || !window.ai.canCreateTextSession) {
-        console.log("On-device AI not supported by this browser.");
+      if (typeof window === 'undefined' || !window.ai || !window.ai.canCreateTextRewriter) {
+        console.log("On-device AI rewriter not supported by this browser.");
         setAiState('unsupported');
         return;
       }
       
       try {
-        const state = await window.ai.canCreateTextSession();
-        console.log("On-device AI availability state:", state);
+        const state = await window.ai.canCreateTextRewriter();
+        console.log("On-device AI rewriter availability state:", state);
         if (state === 'readily') {
           setAiState('ready');
         } else {
           setAiState('unsupported');
         }
       } catch (e) {
-        console.error("Error checking on-device AI:", e);
+        console.error("Error checking on-device AI rewriter:", e);
         setAiState('error');
       }
     }

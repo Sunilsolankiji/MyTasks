@@ -87,7 +87,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
   }, [isOpen, task, form]);
 
   const handleRewriteTitle = async () => {
-    if (aiState !== 'ready' || isRewriting) return;
+    if (aiState !== 'ready' || isRewriting || !window.ai) return;
 
     const currentTitle = form.getValues('title');
     if (!currentTitle.trim()) {
@@ -96,12 +96,11 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
 
     setIsRewriting(true);
     try {
-      const session = await window.ai.createTextSession();
-      const prompt = `Rewrite the following task title to be more clear, concise, and actionable. Only return the rewritten title, without any extra text or quotation marks.\n\nOriginal title: "${currentTitle}"\n\nRewritten title:`;
-      const result = await session.prompt(prompt);
+      const rewriter = await window.ai.createTextRewriter();
+      const result = await rewriter.rewrite(currentTitle);
 
       form.setValue('title', result.trim(), { shouldValidate: true });
-      session.destroy();
+      rewriter.close();
     } catch (e) {
       console.error("Failed to rewrite title:", e);
       toast({
@@ -115,7 +114,7 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
   };
   
   const handleRewriteNotes = async () => {
-    if (aiState !== 'ready' || isRewritingNotes) return;
+    if (aiState !== 'ready' || isRewritingNotes || !window.ai) return;
 
     const currentNotes = form.getValues('notes');
     if (!currentNotes || !currentNotes.trim()) {
@@ -124,12 +123,11 @@ export function TaskForm({ isOpen, onClose, onSubmit, task }: TaskFormProps) {
 
     setIsRewritingNotes(true);
     try {
-      const session = await window.ai.createTextSession();
-      const prompt = `Rewrite the following notes for a task to be more clear, structured, and concise. You can use bullet points or numbered lists if appropriate. Only return the rewritten notes, without any extra text or quotation marks.\n\nOriginal notes: "${currentNotes}"\n\nRewritten notes:`;
-      const result = await session.prompt(prompt);
+      const rewriter = await window.ai.createTextRewriter();
+      const result = await rewriter.rewrite(currentNotes);
 
       form.setValue('notes', result.trim(), { shouldValidate: true });
-      session.destroy();
+      rewriter.close();
     } catch (e) {
       console.error("Failed to rewrite notes:", e);
       toast({
