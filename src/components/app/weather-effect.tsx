@@ -79,6 +79,7 @@ export function WeatherEffect({ location }: { location: Location | null }) {
 
       if (effectType === 'rain' || effectType === 'snow') {
         style.left = `${Math.random() * 100}vw`;
+        style.top = '-10vh'; // Position off-screen initially
         style.opacity = Math.random();
         if(effectType === 'rain'){
             style.opacity = 0.6;
@@ -90,9 +91,11 @@ export function WeatherEffect({ location }: { location: Location | null }) {
       }
       
       if (effectType === 'cloudy') {
-        style.top = `${Math.random() * 100}%`;
-        style.opacity = Math.random() * 0.7 + 0.2;
+        style.left = '-250px';
+        style.top = `${-10 - Math.random() * 20}%`;
+        style.opacity = Math.random() * 0.3 + 0.4;
         (style as any)['--cloud-scale'] = 0.5 + Math.random();
+        style.animationDuration = `${20 + Math.random() * 20}s`;
       }
 
       return (
