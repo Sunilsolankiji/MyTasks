@@ -112,23 +112,32 @@
     width: 20px;
     height: 20px;
     animation-name: windy-leaf-animation;
-    animation-timing-function: linear;
+    animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;
   }
   
   @keyframes windy-leaf-animation {
-    from {
-      transform: translateX(-30px) rotate(0deg);
+    0% {
+      transform: translateX(-30px) translateY(0) rotate(0deg);
       opacity: 0;
     }
     10% {
       opacity: 1;
     }
+    25% {
+      transform: translateX(25vw) translateY(-5vh) rotate(180deg);
+    }
+    50% {
+      transform: translateX(50vw) translateY(5vh) rotate(360deg);
+    }
+    75% {
+      transform: translateX(75vw) translateY(-3vh) rotate(540deg);
+    }
     90% {
       opacity: 1;
     }
-    to {
-      transform: translateX(calc(100vw + 30px)) rotate(720deg);
+    100% {
+      transform: translateX(calc(100vw + 30px)) translateY(2vh) rotate(720deg);
       opacity: 0;
     }
   }
@@ -139,25 +148,24 @@
   }
 
   @keyframes rain-fall {
-    from { transform: translateY(-20vh); }
-    to { transform: translateY(120vh); }
+    from {
+      transform: translateY(var(--start-y, -20vh));
+    }
+    to {
+      transform: translateY(120vh);
+    }
   }
 
   .snow-particle {
-      @apply absolute rounded-full;
+      @apply absolute rounded-full bg-slate-400 dark:bg-slate-300;
       width: 5px;
       height: 5px;
       animation: snow-fall linear infinite;
-      background-color: hsl(var(--muted-foreground) / 0.8);
   }
-  
-  .dark .snow-particle {
-      background-color: hsl(var(--foreground) / 0.8);
-  }
-  
+    
   @keyframes snow-fall {
     from {
-      transform: translateY(-10vh) translateX(0) rotate(0deg);
+      transform: translateY(var(--start-y, -10vh)) translateX(0) rotate(0deg);
     }
     to {
       transform: translateY(120vh) translateX(5vw) rotate(360deg);
@@ -169,12 +177,13 @@
     width: 200px;
     height: 60px;
     border-radius: 60px;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: hsla(0, 0%, 100%, 0.8);
     animation: cloud-drift linear infinite;
+    left: var(--start-x, -250px);
   }
 
   .dark .cloud-particle {
-    background-color: rgba(156, 163, 175, 0.6);
+    background-color: hsla(220, 14%, 70%, 0.7);
   }
   
   .cloud-particle::before,
@@ -201,8 +210,8 @@
   }
 
   @keyframes cloud-drift {
-    from { transform: translateX(-250px); }
-    to { transform: translateX(100vw); }
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(100vw + 250px)); }
   }
 
   .loader-spin {
