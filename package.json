@@ -9,7 +9,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "predeploy": "NODE_ENV=production npm run build",
-    "deploy": "gh-pages -d out -b static-build -r https://x-access-token:${GITHUB_TOKEN}@github.com/sunilsolankiji/MyTasks.git"
+    "deploy": "gh-pages -d out -b static-build"
   },
   "homepage": "https://Sunilsolankiji.github.io/MyTasks",
   "dependencies": {
