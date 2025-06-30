@@ -389,7 +389,7 @@ export default function TaskPage() {
         onOpenSettingsDialog={() => setIsSettingsOpen(true)}
         isSticky={isHeaderSticky}
       />
-      <Tabs defaultValue="all" className="flex flex-col flex-1">
+      <Tabs defaultValue="today" className="flex flex-col flex-1">
         <div className={cn(
           "z-10 border-b bg-background/80 backdrop-blur-md",
           isFilterBarSticky && "sticky",

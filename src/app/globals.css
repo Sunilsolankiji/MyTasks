@@ -90,6 +90,40 @@
     @apply absolute inset-0 overflow-hidden z-[25] pointer-events-none;
   }
 
+  .weather-effect.sunny {
+    @apply top-8 right-8 w-24 h-24;
+  }
+  .sun-particle {
+    @apply absolute w-full h-full rounded-full bg-yellow-400/80;
+    animation: sun-pulse 4s infinite ease-in-out;
+    box-shadow: 0 0 20px 10px hsl(45 93% 57% / 0.5);
+  }
+  .dark .sun-particle {
+    background-color: hsl(48 96% 65% / 0.7);
+    box-shadow: 0 0 30px 15px hsl(48 96% 65% / 0.4);
+  }
+  @keyframes sun-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+
+  .leaf-particle {
+    @apply absolute text-green-600 dark:text-green-400;
+    width: 20px;
+    height: 20px;
+    animation: leaf-fall linear infinite;
+  }
+  @keyframes leaf-fall {
+    from {
+      transform: translateY(0) translateX(0) rotate(0deg);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(120vh) translateX(var(--leaf-end-x, 20vw)) rotate(720deg);
+      opacity: 0;
+    }
+  }
+
   .rain-particle {
     @apply absolute w-px h-12 bg-gradient-to-b from-transparent to-blue-300 dark:to-blue-200;
     animation: rain-fall linear infinite;
@@ -128,8 +162,6 @@
     border-radius: 60px;
     background-color: rgba(209, 213, 219, 0.7); /* gray-300 with 70% opacity */
     animation: cloud-drift linear infinite;
-    filter: blur(2px);
-    transform: scale(var(--cloud-scale, 1));
   }
 
   .dark .cloud-particle {
