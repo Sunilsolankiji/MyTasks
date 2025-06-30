@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState, useMemo } from 'react';
@@ -38,6 +37,8 @@ export function WeatherEffect({ location }: { location: Location | null }) {
   }, [location]);
 
   const effectType = useMemo(() => {
+    return 'sunny'; // Temporarily hardcoded for testing
+
     if (!weatherData) return null;
     
     const code = weatherData.current.condition.code;
