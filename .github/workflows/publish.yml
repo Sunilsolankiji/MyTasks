@@ -44,7 +44,9 @@ jobs:
           static_site_generator: next
 
       - name: Build with Next.js (Static Export) 🏗️
-        run: npx next build
+        run: |
+          API_KEY=${{ secrets.API_KEY }} \
+          npx next build
 
       - name: Upload artifact 📡
         uses: actions/upload-pages-artifact@v3
