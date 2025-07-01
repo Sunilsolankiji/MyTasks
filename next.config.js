@@ -4,6 +4,9 @@ const nextConfig = {
   output: 'export',
   basePath: isProd ? '/MyTasks' : '',
   assetPrefix: isProd ? '/MyTasks' : '',
+  env: {
+    NEXT_PUBLIC_WEATHER_API_KEY: process.env.NEXT_PUBLIC_WEATHER_API_KEY,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
