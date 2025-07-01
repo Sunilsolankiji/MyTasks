@@ -45,7 +45,7 @@ jobs:
 
       - name: Build with Next.js (Static Export) 🏗️
         run: |
-          API_KEY=${{ secrets.API_KEY }} \
+          NEXT_PUBLIC_WEATHER_API_KEY=${{ secrets.NEXT_PUBLIC_WEATHER_API_KEY }} \
           npx next build
 
       - name: Upload artifact 📡
