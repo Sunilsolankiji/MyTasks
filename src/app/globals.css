@@ -238,7 +238,7 @@
   }
   
   .rain-character-container {
-    @apply fixed bottom-4 right-4 w-36 h-48 z-30;
+    @apply fixed bottom-4 right-4 w-32 h-48 z-30;
     animation: rain-character-bob 3s infinite ease-in-out;
   }
 
