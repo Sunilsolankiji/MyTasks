@@ -9,5 +9,5 @@ This project is a **task management application** built with Next.js, designed t
 
 ## Live Demo
 
-You can access a live demo of the project here: [https://mytasks-1e29.onrender.com/](https://mytasks-1e29.onrender.com/)
+You can access a live demo of the project here: [MyTasks](https://sunilsolankiji.github.io/MyTasks/)
 
