@@ -5,6 +5,23 @@ import { useMemo } from 'react';
 import { Leaf } from 'lucide-react';
 import type { WeatherData, WeatherEffectMode } from '@/lib/types';
 
+const AnimeCharacterWithUmbrella = () => (
+    <div className="rain-character-container">
+    <svg viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg" className="rain-character-svg">
+      <g stroke="currentColor" strokeWidth="4" strokeLinecap="round" fill="none">
+        <path d="M 5 50 A 45 45 0 0 1 95 50" />
+        <path d="M 50 50 V 110 C 50 125, 65 125, 65 110" />
+      </g>
+      <g stroke="currentColor" strokeLinecap="round">
+        <circle cx="55" cy="120" r="10" fill="currentColor" stroke="none" />
+        <path d="M 55 130 L 55 150" strokeWidth="6" />
+        <path d="M 55 140 L 45 135" strokeWidth="4" />
+      </g>
+    </svg>
+  </div>
+);
+
+
 const createParticles = (effectType: 'rain' | 'snow' | 'cloudy' | 'windy' | 'sunny' | 'mist' | null) => {
     if (!effectType) return [];
 
@@ -131,6 +148,7 @@ export function WeatherEffect({ weather, mode }: WeatherEffectProps) {
             {allEffects.map(effect => (
                 <div key={effect} className={`weather-effect ${effect}`}>
                     {createParticles(effect)}
+                    {effect === 'rain' && <AnimeCharacterWithUmbrella />}
                 </div>
             ))}
         </>
@@ -146,6 +164,7 @@ export function WeatherEffect({ weather, mode }: WeatherEffectProps) {
   return (
     <div className={`weather-effect ${effectToRender}`}>
       {createParticles(effectToRender as any)}
+      {effectToRender === 'rain' && <AnimeCharacterWithUmbrella />}
     </div>
   );
 }
