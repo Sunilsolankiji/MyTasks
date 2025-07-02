@@ -64,4 +64,4 @@ export interface WeatherData {
   };
 }
 
-export type WeatherEffectMode = 'dynamic' | 'all' | 'sunny' | 'windy' | 'cloudy' | 'rain' | 'snow' | 'none';
+export type WeatherEffectMode = 'dynamic' | 'all' | 'sunny' | 'windy' | 'cloudy' | 'rain' | 'snow' | 'mist' | 'none';

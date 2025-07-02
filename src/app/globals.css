@@ -179,7 +179,7 @@
     width: 200px;
     height: 60px;
     border-radius: 60px;
-    background-color: hsla(220, 20%, 92%, 0.9);
+    background-color: hsla(220, 15%, 85%, 0.8);
     animation: cloud-drift linear infinite;
     left: var(--start-x, -250px);
   }
@@ -215,6 +215,26 @@
   @keyframes cloud-drift {
     from { transform: translateX(0); }
     to { transform: translateX(calc(100vw + 250px)); }
+  }
+
+  .mist-particle {
+    filter: blur(20px);
+    position: absolute;
+    width: 400px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: hsla(210, 20%, 80%, 0.5);
+    animation: mist-drift linear infinite;
+    left: -400px;
+  }
+
+  .dark .mist-particle {
+    background-color: hsla(220, 14%, 60%, 0.2);
+  }
+  
+  @keyframes mist-drift {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(100vw + 400px)); }
   }
 
   .loader-spin {

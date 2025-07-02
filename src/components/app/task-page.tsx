@@ -55,7 +55,7 @@ export default function TaskPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [sortKey, setSortKey] = useState<'creationDate' | 'date' | 'title' | 'completionDate' | 'priority'>('creationDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [projectName, setProjectName] = useState('My Tasks');
+  const [projectName, setProjectName] = useState('MyTasks');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { toast } = useToast();
   
@@ -115,7 +115,7 @@ export default function TaskPage() {
             setProjectName(parsedName);
           }
         } catch {
-          setProjectName('My Tasks');
+          setProjectName('MyTasks');
         }
       }
 
@@ -163,7 +163,7 @@ export default function TaskPage() {
         const storedWeatherEffectMode = localStorage.getItem("weatherEffectMode");
         if (storedWeatherEffectMode) {
           const parsedMode = JSON.parse(storedWeatherEffectMode);
-          const validModes: WeatherEffectMode[] = ['dynamic', 'all', 'sunny', 'windy', 'cloudy', 'rain', 'snow', 'none'];
+          const validModes: WeatherEffectMode[] = ['dynamic', 'all', 'sunny', 'windy', 'cloudy', 'rain', 'snow', 'mist', 'none'];
           if (validModes.includes(parsedMode)) {
             setWeatherEffectMode(parsedMode);
           }

@@ -38,7 +38,7 @@ const settingsSchema = z.object({
   stickyFilterBar: z.boolean(),
   location: z.string().optional(),
   showWeatherWidget: z.boolean(),
-  weatherEffectMode: z.enum(['dynamic', 'all', 'sunny', 'windy', 'cloudy', 'rain', 'snow', 'none']),
+  weatherEffectMode: z.enum(['dynamic', 'all', 'sunny', 'windy', 'cloudy', 'rain', 'snow', 'mist', 'none']),
 });
 
 interface SettingsDialogProps {
@@ -409,6 +409,7 @@ export function SettingsDialog({
                                   <SelectItem value="windy">Windy</SelectItem>
                                   <SelectItem value="rain">Rain</SelectItem>
                                   <SelectItem value="snow">Snow</SelectItem>
+                                  <SelectItem value="mist">Mist</SelectItem>
                                   <SelectItem value="all">All</SelectItem>
                                 </SelectContent>
                               </Select>

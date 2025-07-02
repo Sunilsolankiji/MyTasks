@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { Leaf } from 'lucide-react';
 import type { WeatherData, WeatherEffectMode } from '@/lib/types';
 
-const createParticles = (effectType: 'rain' | 'snow' | 'cloudy' | 'windy' | 'sunny' | null) => {
+const createParticles = (effectType: 'rain' | 'snow' | 'cloudy' | 'windy' | 'sunny' | 'mist' | null) => {
     if (!effectType) return [];
 
     let count = 0;
@@ -27,6 +27,10 @@ const createParticles = (effectType: 'rain' | 'snow' | 'cloudy' | 'windy' | 'sun
       case 'windy':
         count = 50;
         particleClass = 'leaf-particle';
+        break;
+      case 'mist':
+        count = 20;
+        particleClass = 'mist-particle';
         break;
       case 'sunny':
         return [<div key="sun" className="sun-particle"></div>];
@@ -53,10 +57,17 @@ const createParticles = (effectType: 'rain' | 'snow' | 'cloudy' | 'windy' | 'sun
       
       if (effectType === 'cloudy') {
         style.left = '-250px';
-        style.top = `${10 + Math.random() * 15}%`;
+        style.top = `${Math.random() * 15}%`;
         (style as any)['--cloud-scale'] = 0.5 + Math.random();
         style.animationDuration = `${20 + Math.random() * 20}s`;
         style.animationDelay = `${Math.random() * 10}s`;
+      }
+
+      if (effectType === 'mist') {
+        style.bottom = `${-50 + Math.random() * 40}px`;
+        style.animationDuration = `${30 + Math.random() * 30}s`;
+        style.animationDelay = `${Math.random() * 20}s`;
+        style.opacity = Math.random() * 0.5 + 0.2;
       }
 
       if (effectType === 'windy') {
@@ -80,7 +91,7 @@ interface WeatherEffectProps {
 }
 
 export function WeatherEffect({ weather, mode }: WeatherEffectProps) {
-  const dynamicEffectType = useMemo((): 'rain' | 'snow' | 'cloudy' | 'windy' | 'sunny' | null => {
+  const dynamicEffectType = useMemo((): 'rain' | 'snow' | 'cloudy' | 'windy' | 'sunny' | 'mist' | null => {
     if (!weather) return null;
 
     const code = weather.current.condition.code;
@@ -88,6 +99,9 @@ export function WeatherEffect({ weather, mode }: WeatherEffectProps) {
     const windKph = weather.current.wind_kph;
     const conditionText = weather.current.condition.text.toLowerCase();
     
+    if (code === 1030 || code === 1135 || code === 1147 || conditionText.includes('fog')) {
+      return 'mist';
+    }
     if (windKph > 29 || conditionText.includes('blizzard') || conditionText.includes('gale')) {
         return 'windy';
     }
@@ -111,7 +125,7 @@ export function WeatherEffect({ weather, mode }: WeatherEffectProps) {
   }, [weather]);
   
   if (mode === 'all') {
-    const allEffects: ('rain' | 'snow' | 'cloudy' | 'windy' | 'sunny')[] = ['rain', 'snow', 'cloudy', 'windy', 'sunny'];
+    const allEffects: ('rain' | 'snow' | 'cloudy' | 'windy' | 'sunny' | 'mist')[] = ['rain', 'snow', 'cloudy', 'windy', 'sunny', 'mist'];
     return (
         <>
             {allEffects.map(effect => (
