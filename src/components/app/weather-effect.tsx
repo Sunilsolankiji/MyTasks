@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useMemo } from 'react';
@@ -53,7 +52,7 @@ const createParticles = (effectType: 'rain' | 'snow' | 'cloudy' | 'windy' | 'sun
       
       if (effectType === 'cloudy') {
         style.left = '-250px';
-        style.top = `${-10 + Math.random() * 20}%`;
+        style.top = `${Math.random() * 15}%`;
         (style as any)['--cloud-scale'] = 0.5 + Math.random();
         style.animationDuration = `${20 + Math.random() * 20}s`;
         style.animationDelay = `${Math.random() * 10}s`;
