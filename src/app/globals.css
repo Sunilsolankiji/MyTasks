@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -178,7 +179,7 @@
     width: 200px;
     height: 60px;
     border-radius: 60px;
-    background-color: hsla(0, 0%, 100%, 0.8);
+    background-color: hsla(220, 20%, 92%, 0.9);
     animation: cloud-drift linear infinite;
     left: var(--start-x, -250px);
   }
