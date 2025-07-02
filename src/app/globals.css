@@ -237,24 +237,6 @@
     to { transform: translateX(calc(100vw + 400px)); }
   }
   
-  .rain-character-container {
-    @apply fixed bottom-4 right-4 w-32 h-48 z-30;
-    animation: rain-character-bob 3s infinite ease-in-out;
-  }
-
-  .rain-character-svg {
-    @apply w-full h-full text-foreground/80 dark:text-foreground/70 drop-shadow-lg;
-  }
-
-  @keyframes rain-character-bob {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-6px);
-    }
-  }
-
   .loader-spin {
     animation: loader-spin-kf 1s linear infinite;
   }
