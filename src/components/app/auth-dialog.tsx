@@ -53,10 +53,16 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
       onClose();
     } catch (error: any) {
       console.error(error);
-      const errorMessage = error.code?.replace('auth/', '').replace(/-/g, ' ') || "An unexpected error occurred.";
+      let description = "An unexpected error occurred.";
+      if (error.code === 'auth/operation-not-allowed') {
+        description = "Email/Password sign-in is not enabled. Please go to your Firebase project console and enable it in Authentication > Sign-in method.";
+      } else {
+        const errorMessage = error.code?.replace('auth/', '').replace(/-/g, ' ') || "An unexpected error occurred.";
+        description = `Error: ${errorMessage.charAt(0).toUpperCase() + errorMessage.slice(1)}.`;
+      }
       toast({
         title: "Authentication Failed",
-        description: `Error: ${errorMessage.charAt(0).toUpperCase() + errorMessage.slice(1)}.`,
+        description: description,
         variant: "destructive",
       });
     } finally {
