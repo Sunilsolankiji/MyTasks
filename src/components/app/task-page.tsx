@@ -156,8 +156,12 @@ export default function TaskPage() {
           await batch.commit();
           localStorage.removeItem('tasks'); // Clear local after successful sync
           toast({ title: "Tasks Synced", description: "Your tasks are now synced with the cloud." });
-        } catch (error) {
-           toast({ title: "Sync Error", description: "Could not sync tasks with the cloud.", variant: "destructive" });
+        } catch (error: any) {
+           let description = "Could not sync tasks with the cloud.";
+           if (error.code === 'permission-denied') {
+             description = "Sync failed. Please check your Firestore security rules to allow read/write access for your data.";
+           }
+           toast({ title: "Sync Error", description, variant: "destructive" });
            console.error("Firestore sync error:", error);
         } finally {
           setIsSyncing(false);
