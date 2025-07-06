@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -12,7 +12,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
 interface AuthDialogProps {
@@ -20,59 +19,89 @@ interface AuthDialogProps {
   onClose: () => void;
 }
 
-const authSchema = z.object({
+const signInSchema = z.object({
   email: z.string().email("Invalid email address."),
   password: z.string().min(6, "Password must be at least 6 characters long."),
 });
+type SignInFormValues = z.infer<typeof signInSchema>;
 
-type AuthFormValues = z.infer<typeof authSchema>;
+const signUpSchema = z.object({
+    username: z.string().min(3, "Username must be at least 3 characters."),
+    email: z.string().email("Invalid email address."),
+    password: z.string().min(6, "Password must be at least 6 characters long."),
+});
+type SignUpFormValues = z.infer<typeof signUpSchema>;
+
 
 export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("signin");
   const { toast } = useToast();
 
-  const form = useForm<AuthFormValues>({
-    resolver: zodResolver(authSchema),
+  const signInForm = useForm<SignInFormValues>({
+    resolver: zodResolver(signInSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  const handleAuth = async (data: AuthFormValues) => {
+  const signUpForm = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  const handleSignIn = async (data: SignInFormValues) => {
     setIsLoading(true);
     try {
-      if (activeTab === "signin") {
-        await signInWithEmailAndPassword(auth, data.email, data.password);
-        toast({ title: "Success", description: "You've successfully signed in." });
-      } else {
-        await createUserWithEmailAndPassword(auth, data.email, data.password);
-        toast({ title: "Success", description: "Your account has been created." });
-      }
+      await signInWithEmailAndPassword(auth, data.email, data.password);
+      toast({ title: "Success", description: "You've successfully signed in." });
       onClose();
     } catch (error: any) {
-      console.error(error);
-      let description = "An unexpected error occurred.";
-      if (error.code === 'auth/operation-not-allowed') {
-        description = "Email/Password sign-in is not enabled. Please go to your Firebase project console and enable it in Authentication > Sign-in method.";
-      } else {
-        const errorMessage = error.code?.replace('auth/', '').replace(/-/g, ' ') || "An unexpected error occurred.";
-        description = `Error: ${errorMessage.charAt(0).toUpperCase() + errorMessage.slice(1)}.`;
-      }
-      toast({
-        title: "Authentication Failed",
-        description: description,
-        variant: "destructive",
-      });
+      handleAuthError(error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleSignUp = async (data: SignUpFormValues) => {
+    setIsLoading(true);
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+        await updateProfile(userCredential.user, { displayName: data.username });
+        toast({ title: "Success", description: "Your account has been created." });
+        onClose();
+    } catch (error: any) {
+        handleAuthError(error);
+    } finally {
+        setIsLoading(false);
+    }
+  };
+  
+  const handleAuthError = (error: any) => {
+    console.error(error);
+    let description = "An unexpected error occurred.";
+    if (error.code === 'auth/operation-not-allowed') {
+      description = "Email/Password sign-in is not enabled. Please go to your Firebase project console and enable it in Authentication > Sign-in method.";
+    } else {
+      const errorMessage = error.code?.replace('auth/', '').replace(/-/g, ' ') || "An unexpected error occurred.";
+      description = `Error: ${errorMessage.charAt(0).toUpperCase() + errorMessage.slice(1)}.`;
+    }
+    toast({
+      title: "Authentication Failed",
+      description: description,
+      variant: "destructive",
+    });
+  };
+
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      form.reset();
+      signInForm.reset();
+      signUpForm.reset();
       onClose();
     }
   };
@@ -92,59 +121,92 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
             <TabsTrigger value="signup">Create Account</TabsTrigger>
           </TabsList>
           <TabsContent value="signin">
-            <AuthForm form={form} onSubmit={handleAuth} isLoading={isLoading} buttonText="Sign In" />
+            <Form {...signInForm}>
+              <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-4 pt-4">
+                <FormField
+                  control={signInForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="name@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={signInForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Sign In
+                </Button>
+              </form>
+            </Form>
           </TabsContent>
           <TabsContent value="signup">
-            <AuthForm form={form} onSubmit={handleAuth} isLoading={isLoading} buttonText="Create Account" />
+            <Form {...signUpForm}>
+              <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4 pt-4">
+                <FormField
+                  control={signUpForm.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input placeholder="your_username" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={signUpForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="name@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={signUpForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="••••••••" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Create Account
+                </Button>
+              </form>
+            </Form>
           </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>
   );
-}
-
-interface AuthFormProps {
-  form: any;
-  onSubmit: (data: AuthFormValues) => void;
-  isLoading: boolean;
-  buttonText: string;
-}
-
-function AuthForm({ form, onSubmit, isLoading, buttonText }: AuthFormProps) {
-    return (
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="name@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {buttonText}
-            </Button>
-          </form>
-        </Form>
-    )
 }
