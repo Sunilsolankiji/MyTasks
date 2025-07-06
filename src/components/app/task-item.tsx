@@ -31,7 +31,7 @@ export function TaskItem({ task, onToggleComplete, onDelete, onEdit }: TaskItemP
           <Checkbox
             id={`task-${task.id}`}
             checked={task.completed}
-            onCheckedChange={(checked) => onToggleComplete(task?.id, !!checked)}
+            onCheckedChange={(checked) => onToggleComplete(task.id, !!checked)}
             aria-label={`Mark task ${task.title} as ${task.completed ? 'incomplete' : 'complete'}`}
           />
           <CardTitle className={cn("text-lg font-medium", task.completed && "line-through text-muted-foreground")}>

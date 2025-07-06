@@ -30,7 +30,7 @@ import { getWeatherData } from "@/services/weather";
 import { auth, db } from "@/lib/firebase";
 import type { User } from "firebase/auth";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { collection, doc, getDocs, writeBatch, Timestamp, setDoc, deleteDoc } from "firebase/firestore";
+import { collection, doc, writeBatch, Timestamp, setDoc, deleteDoc, onSnapshot } from "firebase/firestore";
 import { AuthDialog } from "./auth-dialog";
 
 const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
@@ -94,9 +94,13 @@ export default function TaskPage() {
   
   // Data loading and syncing effect
   useEffect(() => {
-    const loadAndSyncData = async () => {
+    if (!authChecked) {
+      return;
+    }
+
+    // User is not logged in, use local storage
+    if (!user) {
       setIsLoading(true);
-      let localTasks: Task[] = [];
       try {
         const storedTasks = localStorage.getItem("tasks");
         if (storedTasks) {
@@ -110,77 +114,99 @@ export default function TaskPage() {
           }));
           const validation = tasksImportSchema.safeParse(parsedTasks.map((t: Task) => ({...t, date: t.date?.toISOString(), creationDate: t.creationDate.toISOString(), completionDate: t.completionDate?.toISOString()})));
           if (validation.success) {
-            localTasks = validation.data as Task[];
+            setTasks(validation.data as Task[]);
           } else {
              console.error("Local storage validation error", validation.error.format());
              localStorage.removeItem("tasks");
+             setTasks([]);
           }
+        } else {
+          setTasks([]);
         }
       } catch (error) {
         console.error("Failed to parse tasks from local storage", error);
+        setTasks([]);
+      } finally {
+        setIsLoading(false);
       }
+      return;
+    }
 
-      if (user) {
+    // User is logged in, use Firestore with real-time updates
+    setIsLoading(true);
+
+    const syncLocalTasks = async () => {
+      const storedTasks = localStorage.getItem("tasks");
+      if (storedTasks) {
         setIsSyncing(true);
-        const cloudTasksRef = collection(db, 'users', user.uid, 'tasks');
-        const cloudSnapshot = await getDocs(cloudTasksRef);
-        const cloudTasks = cloudSnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            ...data,
-            id: doc.id,
-            date: data.date ? (data.date as Timestamp).toDate() : undefined,
-            creationDate: (data.creationDate as Timestamp).toDate(),
-            completionDate: data.completionDate ? (data.completionDate as Timestamp).toDate() : undefined,
-          } as Task;
-        });
-
-        const localTasksMap = new Map(localTasks.map(t => [t.id, t]));
-        const cloudTasksMap = new Map(cloudTasks.map(t => [t.id, t]));
-        const mergedTasks = new Map([...localTasksMap, ...cloudTasksMap]);
-        
-        const finalTasks = Array.from(mergedTasks.values());
-        setTasks(finalTasks);
-
         try {
-          const batch = writeBatch(db);
-          finalTasks.forEach(task => {
-            const docRef = doc(db, 'users', user.uid, 'tasks', task.id);
-            batch.set(docRef, {
-              ...task,
-              date: task.date ? Timestamp.fromDate(task.date) : null,
-              creationDate: Timestamp.fromDate(task.creationDate),
-              completionDate: task.completionDate ? Timestamp.fromDate(task.completionDate) : null,
-              notes: task.notes ?? null,
-              attachment: task.attachment ?? null,
-              attachmentName: task.attachmentName ?? null,
-              referenceLinks: task.referenceLinks ?? [],
-            });
-          });
-          await batch.commit();
-          localStorage.removeItem('tasks'); // Clear local after successful sync
-          toast({ title: "Tasks Synced", description: "Your tasks are now synced with the cloud." });
-        } catch (error: any) {
-           let description = "Could not sync tasks with the cloud.";
-           if (error.code === 'permission-denied') {
-             description = "Sync failed. Please check your Firestore security rules to allow read/write access for your data.";
-           } else {
-             description = `Sync failed: ${error.message}`;
-           }
-           toast({ title: "Sync Error", description, variant: "destructive" });
-           console.error("Firestore sync error:", error);
+          const validationResult = tasksImportSchema.safeParse(JSON.parse(storedTasks).map((t: Task) => ({...t, date: t.date?.toISOString(), creationDate: t.creationDate.toISOString(), completionDate: t.completionDate?.toISOString()})));
+
+          if (validationResult.success && validationResult.data.length > 0) {
+              const localTasks = validationResult.data as Task[];
+              const batch = writeBatch(db);
+              localTasks.forEach(task => {
+                  const docRef = doc(db, 'users', user.uid, 'tasks', task.id);
+                  batch.set(docRef, {
+                      ...task,
+                      date: task.date ? Timestamp.fromDate(task.date) : null,
+                      creationDate: Timestamp.fromDate(task.creationDate),
+                      completionDate: task.completionDate ? Timestamp.fromDate(task.completionDate) : null,
+                      notes: task.notes ?? null,
+                      attachment: task.attachment ?? null,
+                      attachmentName: task.attachmentName ?? null,
+                      referenceLinks: task.referenceLinks ?? [],
+                  });
+              });
+              await batch.commit();
+              localStorage.removeItem('tasks');
+              toast({ title: "Tasks Synced", description: "Your local tasks have been saved to the cloud." });
+          } else if (!validationResult.success) {
+              console.error("Local storage validation error during sync", validationResult.error.format());
+              localStorage.removeItem("tasks");
+          }
+        } catch (e: any) {
+            console.error("Failed to sync local tasks:", e);
+            let description = "Could not sync local tasks with the cloud.";
+            if (e.code === 'permission-denied') {
+                description = "Sync failed. Please check your Firestore security rules.";
+            }
+            toast({ title: "Sync Error", description, variant: "destructive" });
         } finally {
-          setIsSyncing(false);
+            setIsSyncing(false);
         }
-      } else {
-        setTasks(localTasks);
       }
-      setIsLoading(false);
     };
     
-    if (authChecked) {
-       loadAndSyncData();
-    }
+    syncLocalTasks();
+
+    const cloudTasksRef = collection(db, 'users', user.uid, 'tasks');
+    const unsubscribe = onSnapshot(cloudTasksRef, (snapshot) => {
+        const cloudTasks = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                ...data,
+                id: doc.id,
+                date: data.date ? (data.date as Timestamp).toDate() : undefined,
+                creationDate: (data.creationDate as Timestamp).toDate(),
+                completionDate: data.completionDate ? (data.completionDate as Timestamp).toDate() : undefined,
+            } as Task;
+        });
+        setTasks(cloudTasks);
+        setIsLoading(false);
+    }, (error) => {
+        console.error("Firestore listener error:", error);
+        let description = "Could not fetch tasks from the cloud.";
+        if (error.code === 'permission-denied') {
+            description = "Fetch failed. Please check your Firestore security rules to allow read access.";
+        }
+        toast({ title: "Sync Error", description, variant: "destructive" });
+        setIsLoading(false);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, [user, authChecked, toast]);
 
   useEffect(() => {
@@ -328,19 +354,14 @@ export default function TaskPage() {
   };
 
   const handleToggleComplete = (id: string, completed: boolean) => {
-    let updatedTask: Task | undefined;
-    setTasks(tasks.map(task => {
-      if (task.id === id) {
-        updatedTask = { ...task, completed, completionDate: completed ? new Date() : undefined };
-        return updatedTask;
-      }
-      return task;
-    }));
-    if (updatedTask) writeTask(updatedTask);
+    const task = tasks.find(t => t.id === id);
+    if (task) {
+        const updatedTask = { ...task, completed, completionDate: completed ? new Date() : undefined };
+        writeTask(updatedTask);
+    }
   };
 
   const handleDeleteTask = (id: string) => {
-    setTasks(tasks.filter(task => task.id !== id));
     deleteTaskFromDb(id);
   };
 
@@ -421,14 +442,33 @@ export default function TaskPage() {
     reader.readAsText(file);
   };
 
-  const handleConfirmImport = (selectedTasks: Task[]) => {
+  const handleConfirmImport = async (selectedTasks: Task[]) => {
     const existingIds = new Set(tasks.map(t => t.id));
     const newTasks = selectedTasks.map(task => ({
       ...task,
       id: existingIds.has(task.id) ? crypto.randomUUID() : task.id,
     }));
 
-    setTasks(prev => [...prev, ...newTasks]);
+    if (user) {
+        const batch = writeBatch(db);
+        newTasks.forEach(task => {
+            const taskDocRef = doc(db, 'users', user.uid, 'tasks', task.id);
+            batch.set(taskDocRef, {
+                ...task,
+                date: task.date ? Timestamp.fromDate(task.date) : null,
+                creationDate: Timestamp.fromDate(task.creationDate),
+                completionDate: task.completionDate ? Timestamp.fromDate(task.completionDate) : null,
+                notes: task.notes ?? null,
+                attachment: task.attachment ?? null,
+                attachmentName: task.attachmentName ?? null,
+                referenceLinks: task.referenceLinks ?? [],
+            });
+        });
+        await batch.commit();
+    } else {
+        setTasks(prev => [...prev, ...newTasks]);
+    }
+
     toast({
         title: "Import Successful",
         description: `Successfully imported ${newTasks.length} tasks.`,
