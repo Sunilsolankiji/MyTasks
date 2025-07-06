@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import type { Task, Priority, Location, WeatherData, WeatherEffectMode } from "@/lib/types";
 import { Header } from "./header";
 import { TaskForm } from "./task-form";
@@ -178,34 +178,43 @@ export default function TaskPage() {
     }
   }, []);
   
-  useEffect(() => {
+  const fetchWeather = useCallback(async (showToast = false) => {
     if (!location || !showWeatherWidget) {
       setWeather(null);
       return;
     }
 
-    const fetchWeather = async () => {
-      setIsWeatherLoading(true);
-      try {
-        const data = await getWeatherData(`${location.lat},${location.lon}`);
-        setWeather(data);
-      } catch (err) {
+    setIsWeatherLoading(true);
+    try {
+      const data = await getWeatherData(`${location.lat},${location.lon}`);
+      setWeather(data);
+      if (showToast) {
         toast({
-          title: "Weather Error",
-          description: err instanceof Error ? err.message : "Failed to fetch weather data.",
-          variant: "destructive"
+          title: "Sync Complete",
+          description: "Weather data has been updated.",
         });
-        setWeather(null);
-      } finally {
-        setIsWeatherLoading(false);
       }
-    };
-
-    fetchWeather();
-    const interval = setInterval(fetchWeather, 15 * 60 * 1000); // every 15 mins
-
-    return () => clearInterval(interval);
+    } catch (err) {
+      toast({
+        title: "Weather Error",
+        description: err instanceof Error ? err.message : "Failed to fetch weather data.",
+        variant: "destructive"
+      });
+      setWeather(null);
+    } finally {
+      setIsWeatherLoading(false);
+    }
   }, [location, showWeatherWidget, toast]);
+
+  useEffect(() => {
+    if (location && showWeatherWidget) {
+      fetchWeather();
+      const interval = setInterval(() => fetchWeather(), 15 * 60 * 1000); // every 15 mins
+      return () => clearInterval(interval);
+    } else {
+      setWeather(null);
+    }
+  }, [location, showWeatherWidget, fetchWeather]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !isLoading) {
@@ -442,6 +451,8 @@ export default function TaskPage() {
         onOpenTaskDialog={() => setIsTaskFormOpen(true)}
         onOpenSettingsDialog={() => setIsSettingsOpen(true)}
         isSticky={isHeaderSticky}
+        onSync={() => fetchWeather(true)}
+        isSyncing={isWeatherLoading}
       />
       <Tabs defaultValue="today" className="flex flex-col flex-1">
         <div className={cn(

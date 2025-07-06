@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link";
-import { Plus, Settings } from "lucide-react";
+import { Plus, Settings, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
@@ -10,10 +10,12 @@ interface HeaderProps {
   projectName: string;
   onOpenTaskDialog: () => void;
   onOpenSettingsDialog: () => void;
+  onSync: () => void;
+  isSyncing: boolean;
   isSticky?: boolean;
 }
 
-export function Header({ projectName, onOpenTaskDialog, onOpenSettingsDialog, isSticky }: HeaderProps) {
+export function Header({ projectName, onOpenTaskDialog, onOpenSettingsDialog, onSync, isSyncing, isSticky }: HeaderProps) {
   return (
     <header className={cn(
       "flex items-center justify-center w-full bg-background h-20 px-4 border-b",
@@ -28,6 +30,11 @@ export function Header({ projectName, onOpenTaskDialog, onOpenSettingsDialog, is
           <Button onClick={onOpenTaskDialog}>
             <Plus className="mr-2 h-4 w-4" />
             Add Task
+          </Button>
+
+          <Button variant="ghost" size="icon" onClick={onSync} disabled={isSyncing}>
+            <RefreshCw className={cn("h-5 w-5", isSyncing && "animate-spin")} />
+            <span className="sr-only">Sync</span>
           </Button>
 
           <Button variant="ghost" size="icon" onClick={onOpenSettingsDialog}>
