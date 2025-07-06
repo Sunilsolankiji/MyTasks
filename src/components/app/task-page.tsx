@@ -151,6 +151,10 @@ export default function TaskPage() {
               date: task.date ? Timestamp.fromDate(task.date) : null,
               creationDate: Timestamp.fromDate(task.creationDate),
               completionDate: task.completionDate ? Timestamp.fromDate(task.completionDate) : null,
+              notes: task.notes ?? null,
+              attachment: task.attachment ?? null,
+              attachmentName: task.attachmentName ?? null,
+              referenceLinks: task.referenceLinks ?? [],
             });
           });
           await batch.commit();
@@ -160,6 +164,8 @@ export default function TaskPage() {
            let description = "Could not sync tasks with the cloud.";
            if (error.code === 'permission-denied') {
              description = "Sync failed. Please check your Firestore security rules to allow read/write access for your data.";
+           } else {
+             description = `Sync failed: ${error.message}`;
            }
            toast({ title: "Sync Error", description, variant: "destructive" });
            console.error("Firestore sync error:", error);
@@ -261,6 +267,10 @@ export default function TaskPage() {
         date: task.date ? Timestamp.fromDate(task.date) : null,
         creationDate: Timestamp.fromDate(task.creationDate),
         completionDate: task.completionDate ? Timestamp.fromDate(task.completionDate) : null,
+        notes: task.notes ?? null,
+        attachment: task.attachment ?? null,
+        attachmentName: task.attachmentName ?? null,
+        referenceLinks: task.referenceLinks ?? [],
       }).commit();
     }
   };
