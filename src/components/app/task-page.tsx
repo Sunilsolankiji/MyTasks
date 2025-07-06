@@ -27,6 +27,11 @@ import { WeatherEffect } from "./weather-effect";
 import { WeatherWidget } from "./weather-widget";
 import { cn } from "@/lib/utils";
 import { getWeatherData } from "@/services/weather";
+import { auth, db } from "@/lib/firebase";
+import type { User } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { collection, doc, getDocs, writeBatch, Timestamp } from "firebase/firestore";
+import { AuthDialog } from "./auth-dialog";
 
 const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
 
@@ -69,10 +74,29 @@ export default function TaskPage() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [isWeatherLoading, setIsWeatherLoading] = useState(false);
   const [weatherEffectMode, setWeatherEffectMode] = useState<WeatherEffectMode>('dynamic');
+  
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
-
+  // Auth listener
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+      setUser(authUser);
+      setAuthChecked(true);
+      if (authUser) {
+        setIsAuthDialogOpen(false);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+  
+  // Data loading and syncing effect
+  useEffect(() => {
+    const loadAndSyncData = async () => {
+      setIsLoading(true);
+      let localTasks: Task[] = [];
       try {
         const storedTasks = localStorage.getItem("tasks");
         if (storedTasks) {
@@ -83,10 +107,10 @@ export default function TaskPage() {
             creationDate: task.creationDate ? new Date(task.creationDate) : new Date(),
             completionDate: task.completionDate ? new Date(task.completionDate) : undefined,
             referenceLinks: task.referenceLinks || [],
-          }))
-          const validation = tasksImportSchema.safeParse(parsedTasks.map((t:Task) => ({...t, date: t.date?.toISOString(), creationDate: t.creationDate.toISOString(), completionDate: t.completionDate?.toISOString()})));
+          }));
+          const validation = tasksImportSchema.safeParse(parsedTasks.map((t: Task) => ({...t, date: t.date?.toISOString(), creationDate: t.creationDate.toISOString(), completionDate: t.completionDate?.toISOString()})));
           if (validation.success) {
-            setTasks(validation.data as Task[]);
+            localTasks = validation.data as Task[];
           } else {
              console.error("Local storage validation error", validation.error.format());
              localStorage.removeItem("tasks");
@@ -94,91 +118,94 @@ export default function TaskPage() {
         }
       } catch (error) {
         console.error("Failed to parse tasks from local storage", error);
-        localStorage.removeItem("tasks");
-      }
-      
-      const storedSortKey = localStorage.getItem("sortKey");
-      if (storedSortKey) {
-        setSortKey(storedSortKey as any);
-      }
-      
-      const storedSortDirection = localStorage.getItem("sortDirection");
-      if (storedSortDirection) {
-        setSortDirection(storedSortDirection as 'asc' | 'desc');
       }
 
-      const storedProjectName = localStorage.getItem("projectName");
-      if (storedProjectName) {
+      if (user) {
+        setIsSyncing(true);
+        const cloudTasksRef = collection(db, 'users', user.uid, 'tasks');
+        const cloudSnapshot = await getDocs(cloudTasksRef);
+        const cloudTasks = cloudSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            ...data,
+            id: doc.id,
+            date: data.date ? (data.date as Timestamp).toDate() : undefined,
+            creationDate: (data.creationDate as Timestamp).toDate(),
+            completionDate: data.completionDate ? (data.completionDate as Timestamp).toDate() : undefined,
+          } as Task;
+        });
+
+        const localTasksMap = new Map(localTasks.map(t => [t.id, t]));
+        const cloudTasksMap = new Map(cloudTasks.map(t => [t.id, t]));
+        const mergedTasks = new Map([...localTasksMap, ...cloudTasksMap]);
+        
+        const finalTasks = Array.from(mergedTasks.values());
+        setTasks(finalTasks);
+
         try {
-          const parsedName = JSON.parse(storedProjectName);
-          if (typeof parsedName === 'string') {
-            setProjectName(parsedName);
-          }
-        } catch {
-          setProjectName('MyTasks');
+          const batch = writeBatch(db);
+          finalTasks.forEach(task => {
+            const docRef = doc(db, 'users', user.uid, 'tasks', task.id);
+            batch.set(docRef, {
+              ...task,
+              date: task.date ? Timestamp.fromDate(task.date) : null,
+              creationDate: Timestamp.fromDate(task.creationDate),
+              completionDate: task.completionDate ? Timestamp.fromDate(task.completionDate) : null,
+            });
+          });
+          await batch.commit();
+          localStorage.removeItem('tasks'); // Clear local after successful sync
+          toast({ title: "Tasks Synced", description: "Your tasks are now synced with the cloud." });
+        } catch (error) {
+           toast({ title: "Sync Error", description: "Could not sync tasks with the cloud.", variant: "destructive" });
+           console.error("Firestore sync error:", error);
+        } finally {
+          setIsSyncing(false);
         }
+      } else {
+        setTasks(localTasks);
       }
-
-      try {
-        const storedLocation = localStorage.getItem("location");
-        if (storedLocation) {
-          setLocation(JSON.parse(storedLocation));
-        }
-      } catch (error) {
-        console.error("Failed to parse location from local storage", error);
-        localStorage.removeItem("location");
-      }
-      
-      try {
-        const storedShowWeather = localStorage.getItem("showWeatherWidget");
-        if (storedShowWeather) {
-          setShowWeatherWidget(JSON.parse(storedShowWeather));
-        }
-      } catch (error) {
-        console.error("Failed to parse showWeatherWidget from local storage", error);
-        localStorage.removeItem("showWeatherWidget");
-      }
-
-      try {
-        const storedIsHeaderSticky = localStorage.getItem("isHeaderSticky");
-        if (storedIsHeaderSticky) {
-          setIsHeaderSticky(JSON.parse(storedIsHeaderSticky));
-        }
-      } catch (error) {
-        console.error("Failed to parse isHeaderSticky from local storage", error);
-        localStorage.removeItem("isHeaderSticky");
-      }
-      
-      try {
-        const storedIsFilterBarSticky = localStorage.getItem("isFilterBarSticky");
-        if (storedIsFilterBarSticky) {
-          setIsFilterBarSticky(JSON.parse(storedIsFilterBarSticky));
-        }
-      } catch (error) {
-        console.error("Failed to parse isFilterBarSticky from local storage", error);
-        localStorage.removeItem("isFilterBarSticky");
-      }
-
-      try {
-        const storedWeatherEffectMode = localStorage.getItem("weatherEffectMode");
-        if (storedWeatherEffectMode) {
-          const parsedMode = JSON.parse(storedWeatherEffectMode);
-          const validModes: WeatherEffectMode[] = ['dynamic', 'all', 'sunny', 'windy', 'cloudy', 'rain', 'snow', 'mist', 'none'];
-          if (validModes.includes(parsedMode)) {
-            setWeatherEffectMode(parsedMode);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to parse weatherEffectMode from local storage", error);
-        localStorage.removeItem("weatherEffectMode");
-      }
-
-
       setIsLoading(false);
+    };
+    
+    if (authChecked) {
+       loadAndSyncData();
+    }
+  }, [user, authChecked, toast]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isLoading && !user) {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+  }, [tasks, isLoading, user]);
+
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedSortKey = localStorage.getItem("sortKey");
+        if (storedSortKey) setSortKey(storedSortKey as any);
+        const storedSortDirection = localStorage.getItem("sortDirection");
+        if (storedSortDirection) setSortDirection(storedSortDirection as 'asc' | 'desc');
+        const storedProjectName = localStorage.getItem("projectName");
+        if (storedProjectName) setProjectName(JSON.parse(storedProjectName));
+        const storedLocation = localStorage.getItem("location");
+        if (storedLocation) setLocation(JSON.parse(storedLocation));
+        const storedShowWeather = localStorage.getItem("showWeatherWidget");
+        if (storedShowWeather) setShowWeatherWidget(JSON.parse(storedShowWeather));
+        const storedIsHeaderSticky = localStorage.getItem("isHeaderSticky");
+        if (storedIsHeaderSticky) setIsHeaderSticky(JSON.parse(storedIsHeaderSticky));
+        const storedIsFilterBarSticky = localStorage.getItem("isFilterBarSticky");
+        if (storedIsFilterBarSticky) setIsFilterBarSticky(JSON.parse(storedIsFilterBarSticky));
+        const storedWeatherEffectMode = localStorage.getItem("weatherEffectMode");
+        if (storedWeatherEffectMode) setWeatherEffectMode(JSON.parse(storedWeatherEffectMode));
+      } catch (e) {
+        console.error("Failed to load settings from local storage", e);
+      }
     }
   }, []);
   
-  const fetchWeather = useCallback(async (showToast = false) => {
+  const fetchWeather = useCallback(async () => {
     if (!location || !showWeatherWidget) {
       setWeather(null);
       return;
@@ -188,12 +215,6 @@ export default function TaskPage() {
     try {
       const data = await getWeatherData(`${location.lat},${location.lon}`);
       setWeather(data);
-      if (showToast) {
-        toast({
-          title: "Sync Complete",
-          description: "Weather data has been updated.",
-        });
-      }
     } catch (err) {
       toast({
         title: "Weather Error",
@@ -217,70 +238,52 @@ export default function TaskPage() {
   }, [location, showWeatherWidget, fetchWeather]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && !isLoading) {
-      localStorage.setItem("tasks", JSON.stringify(tasks));
-    }
-  }, [tasks, isLoading]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !isLoading) {
+    if (typeof window !== 'undefined' && isLoading) return;
       localStorage.setItem("sortKey", sortKey);
       localStorage.setItem("sortDirection", sortDirection);
-    }
-  }, [sortKey, sortDirection, isLoading]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !isLoading) {
       localStorage.setItem("projectName", JSON.stringify(projectName));
-    }
-  }, [projectName, isLoading]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !isLoading) {
-      if (location) {
-        localStorage.setItem("location", JSON.stringify(location));
-      } else {
-        localStorage.removeItem("location");
-      }
-    }
-  }, [location, isLoading]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !isLoading) {
+      if (location) localStorage.setItem("location", JSON.stringify(location)); else localStorage.removeItem("location");
       localStorage.setItem("showWeatherWidget", JSON.stringify(showWeatherWidget));
-    }
-  }, [showWeatherWidget, isLoading]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !isLoading) {
       localStorage.setItem("isHeaderSticky", JSON.stringify(isHeaderSticky));
-    }
-  }, [isHeaderSticky, isLoading]);
-  
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !isLoading) {
       localStorage.setItem("isFilterBarSticky", JSON.stringify(isFilterBarSticky));
-    }
-  }, [isFilterBarSticky, isLoading]);
-  
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !isLoading) {
       localStorage.setItem("weatherEffectMode", JSON.stringify(weatherEffectMode));
+  }, [sortKey, sortDirection, projectName, location, showWeatherWidget, isHeaderSticky, isFilterBarSticky, weatherEffectMode, isLoading]);
+
+  const writeTask = async (task: Task) => {
+    if (user) {
+      const taskDocRef = doc(db, 'users', user.uid, 'tasks', task.id);
+      await writeBatch(db).set(taskDocRef, {
+        ...task,
+        date: task.date ? Timestamp.fromDate(task.date) : null,
+        creationDate: Timestamp.fromDate(task.creationDate),
+        completionDate: task.completionDate ? Timestamp.fromDate(task.completionDate) : null,
+      }).commit();
     }
-  }, [weatherEffectMode, isLoading]);
+  };
+
+  const deleteTaskFromDb = async (taskId: string) => {
+    if (user) {
+      const taskDocRef = doc(db, 'users', user.uid, 'tasks', taskId);
+      await writeBatch(db).delete(taskDocRef).commit();
+    }
+  };
+
 
   const handleSaveTask = (taskData: Omit<Task, 'id' | 'completed' | 'creationDate' | 'completionDate'>) => {
+    let updatedTask: Task;
     if (editingTask) {
-      setTasks(tasks.map(t => t.id === editingTask.id ? { ...t, ...taskData } : t));
+      updatedTask = { ...editingTask, ...taskData };
+      setTasks(tasks.map(t => t.id === editingTask.id ? updatedTask : t));
     } else {
-      const newTask: Task = {
+      updatedTask = {
         ...taskData,
         id: crypto.randomUUID(),
         completed: false,
         creationDate: new Date(),
       };
-      setTasks(prevTasks => [...prevTasks, newTask]);
+      setTasks(prevTasks => [...prevTasks, updatedTask]);
     }
+    writeTask(updatedTask);
     setEditingTask(null);
   };
 
@@ -295,16 +298,36 @@ export default function TaskPage() {
   };
 
   const handleToggleComplete = (id: string, completed: boolean) => {
-    setTasks(tasks.map(task => task.id === id ? { ...task, completed, completionDate: completed ? new Date() : undefined } : task));
+    let updatedTask: Task | undefined;
+    setTasks(tasks.map(task => {
+      if (task.id === id) {
+        updatedTask = { ...task, completed, completionDate: completed ? new Date() : undefined };
+        return updatedTask;
+      }
+      return task;
+    }));
+    if (updatedTask) writeTask(updatedTask);
   };
 
   const handleDeleteTask = (id: string) => {
     setTasks(tasks.filter(task => task.id !== id));
+    deleteTaskFromDb(id);
   };
 
   const handleUpdateProjectName = (name: string) => {
     setProjectName(name);
   };
+  
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      setTasks([]); // Clear tasks on sign out
+      toast({ title: "Signed Out", description: "You have been successfully signed out." });
+    } catch (error) {
+      toast({ title: "Sign Out Error", description: "Failed to sign out.", variant: "destructive" });
+    }
+  };
+
 
   const handleExportTasks = (tasksToExport: Task[]) => {
     if (tasksToExport.length === 0) {
@@ -451,8 +474,10 @@ export default function TaskPage() {
         onOpenTaskDialog={() => setIsTaskFormOpen(true)}
         onOpenSettingsDialog={() => setIsSettingsOpen(true)}
         isSticky={isHeaderSticky}
-        onSync={() => fetchWeather(true)}
-        isSyncing={isWeatherLoading}
+        onSync={() => setIsAuthDialogOpen(true)}
+        isSyncing={isSyncing}
+        user={user}
+        onSignOut={handleSignOut}
       />
       <Tabs defaultValue="today" className="flex flex-col flex-1">
         <div className={cn(
@@ -587,6 +612,10 @@ export default function TaskPage() {
         tasksToImport={tasksToImport}
         onConfirmImport={handleConfirmImport}
       />
+       <AuthDialog
+        isOpen={isAuthDialogOpen}
+        onClose={() => setIsAuthDialogOpen(false)}
+       />
     </div>
   );
 }

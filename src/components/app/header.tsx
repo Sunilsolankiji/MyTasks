@@ -1,10 +1,13 @@
 "use client"
 
 import Link from "next/link";
-import { Plus, Settings, RefreshCw } from "lucide-react";
+import { Plus, Settings, RefreshCw, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { cn } from "@/lib/utils";
+import type { User } from "firebase/auth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   projectName: string;
@@ -13,9 +16,11 @@ interface HeaderProps {
   onSync: () => void;
   isSyncing: boolean;
   isSticky?: boolean;
+  user: User | null;
+  onSignOut: () => void;
 }
 
-export function Header({ projectName, onOpenTaskDialog, onOpenSettingsDialog, onSync, isSyncing, isSticky }: HeaderProps) {
+export function Header({ projectName, onOpenTaskDialog, onOpenSettingsDialog, onSync, isSyncing, isSticky, user, onSignOut }: HeaderProps) {
   return (
     <header className={cn(
       "flex items-center justify-center w-full bg-background h-20 px-4 border-b",
@@ -32,10 +37,29 @@ export function Header({ projectName, onOpenTaskDialog, onOpenSettingsDialog, on
             Add Task
           </Button>
 
-          <Button variant="ghost" size="icon" onClick={onSync} disabled={isSyncing}>
-            <RefreshCw className={cn("h-5 w-5", isSyncing && "animate-spin")} />
-            <span className="sr-only">Sync</span>
-          </Button>
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || 'User'} />
+                    <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="ghost" size="icon" onClick={onSync} disabled={isSyncing} title="Sync Tasks">
+              <RefreshCw className={cn("h-5 w-5", isSyncing && "animate-spin")} />
+              <span className="sr-only">Sync Tasks</span>
+            </Button>
+          )}
 
           <Button variant="ghost" size="icon" onClick={onOpenSettingsDialog}>
             <Settings className="h-5 w-5" />
