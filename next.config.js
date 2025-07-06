@@ -1,12 +1,4 @@
-const isProd = process.env.NODE_ENV === 'production'
-
 const nextConfig = {
-  output: 'export',
-  basePath: isProd ? '/MyTasks' : '',
-  assetPrefix: isProd ? '/MyTasks' : '',
-  env: {
-    NEXT_PUBLIC_WEATHER_API_KEY: process.env.NEXT_PUBLIC_WEATHER_API_KEY,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -14,7 +6,6 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
