@@ -30,7 +30,7 @@ import { getWeatherData } from "@/services/weather";
 import { auth, db } from "@/lib/firebase";
 import type { User } from "firebase/auth";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { collection, doc, getDocs, writeBatch, Timestamp } from "firebase/firestore";
+import { collection, doc, getDocs, writeBatch, Timestamp, setDoc, deleteDoc } from "firebase/firestore";
 import { AuthDialog } from "./auth-dialog";
 
 const priorityOrder: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
@@ -260,25 +260,41 @@ export default function TaskPage() {
   }, [sortKey, sortDirection, projectName, location, showWeatherWidget, isHeaderSticky, isFilterBarSticky, weatherEffectMode, isLoading]);
 
   const writeTask = async (task: Task) => {
-    if (user) {
-      const taskDocRef = doc(db, 'users', user.uid, 'tasks', task.id);
-      await writeBatch(db).set(taskDocRef, {
-        ...task,
-        date: task.date ? Timestamp.fromDate(task.date) : null,
-        creationDate: Timestamp.fromDate(task.creationDate),
-        completionDate: task.completionDate ? Timestamp.fromDate(task.completionDate) : null,
-        notes: task.notes ?? null,
-        attachment: task.attachment ?? null,
-        attachmentName: task.attachmentName ?? null,
-        referenceLinks: task.referenceLinks ?? [],
-      }).commit();
+    if (!user) return;
+    try {
+        const taskDocRef = doc(db, 'users', user.uid, 'tasks', task.id);
+        await setDoc(taskDocRef, {
+            ...task,
+            date: task.date ? Timestamp.fromDate(task.date) : null,
+            creationDate: Timestamp.fromDate(task.creationDate),
+            completionDate: task.completionDate ? Timestamp.fromDate(task.completionDate) : null,
+            notes: task.notes ?? null,
+            attachment: task.attachment ?? null,
+            attachmentName: task.attachmentName ?? null,
+            referenceLinks: task.referenceLinks ?? [],
+        });
+    } catch (error: any) {
+        console.error("Firestore write error:", error);
+        let description = "Could not save task to the cloud.";
+        if (error.code === 'permission-denied') {
+            description = "Save failed. Please check your Firestore security rules.";
+        }
+        toast({ title: "Sync Error", description, variant: "destructive" });
     }
   };
 
   const deleteTaskFromDb = async (taskId: string) => {
-    if (user) {
-      const taskDocRef = doc(db, 'users', user.uid, 'tasks', taskId);
-      await writeBatch(db).delete(taskDocRef).commit();
+    if (!user) return;
+    try {
+        const taskDocRef = doc(db, 'users', user.uid, 'tasks', taskId);
+        await deleteDoc(taskDocRef);
+    } catch (error: any) {
+        console.error("Firestore delete error:", error);
+        let description = "Could not delete task from the cloud.";
+        if (error.code === 'permission-denied') {
+            description = "Delete failed. Please check your Firestore security rules.";
+        }
+        toast({ title: "Sync Error", description, variant: "destructive" });
     }
   };
 
