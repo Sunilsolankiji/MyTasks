@@ -26,7 +26,8 @@ const signInSchema = z.object({
 type SignInFormValues = z.infer<typeof signInSchema>;
 
 const signUpSchema = z.object({
-    username: z.string().min(3, "Username must be at least 3 characters."),
+    firstName: z.string().min(1, "First name is required."),
+    lastName: z.string().min(1, "Last name is required."),
     email: z.string().email("Invalid email address."),
     password: z.string().min(6, "Password must be at least 6 characters long."),
 });
@@ -49,7 +50,8 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
   const signUpForm = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      username: "",
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
     },
@@ -72,7 +74,8 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
     setIsLoading(true);
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-        await updateProfile(userCredential.user, { displayName: data.username });
+        const displayName = `${data.firstName} ${data.lastName}`.trim();
+        await updateProfile(userCredential.user, { displayName });
         toast({ title: "Success", description: "Your account has been created." });
         onClose();
     } catch (error: any) {
@@ -159,19 +162,34 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
           <TabsContent value="signup">
             <Form {...signUpForm}>
               <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4 pt-4">
-                <FormField
-                  control={signUpForm.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Username</FormLabel>
-                      <FormControl>
-                        <Input placeholder="your_username" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="flex gap-4">
+                  <FormField
+                    control={signUpForm.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="John" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={signUpForm.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Doe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   control={signUpForm.control}
                   name="email"
