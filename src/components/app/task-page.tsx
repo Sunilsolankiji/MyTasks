@@ -141,9 +141,9 @@ export default function TaskPage() {
                   const docRef = doc(db, 'users', user.uid, 'tasks', task.id);
                   batch.set(docRef, {
                       ...task,
-                      date: task.date ? Timestamp.fromDate(task.date) : null,
-                      creationDate: Timestamp.fromDate(task.creationDate),
-                      completionDate: task.completionDate ? Timestamp.fromDate(task.completionDate) : null,
+                      date: task.date ? Timestamp.fromDate(new Date(task.date)) : null,
+                      creationDate: Timestamp.fromDate(new Date(task.creationDate)),
+                      completionDate: task.completionDate ? Timestamp.fromDate(new Date(task.completionDate)) : null,
                       notes: task.notes ?? null,
                       attachment: task.attachment ?? null,
                       attachmentName: task.attachmentName ?? null,
@@ -560,6 +560,11 @@ export default function TaskPage() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
               <div className="flex-1">
+                {user && (
+                  <h2 className="text-lg text-muted-foreground">
+                    Welcome back, {user.displayName?.split(' ')[0] || 'User'}!
+                  </h2>
+                )}
                 <h1 className="text-3xl font-bold tracking-tight">Your Tasks</h1>
               </div>
               {showWeatherWidget && <WeatherWidget location={location} weather={weather} isLoading={isWeatherLoading} />}
