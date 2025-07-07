@@ -332,7 +332,11 @@ export function SettingsDialog({
                                         }}
                                         autoComplete="off"
                                       />
-                                      {isSearching && <Loader2 className="absolute right-9 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
+                                      {isSearching && (
+                                        <div className="absolute right-9 top-1/2 -translate-y-1/2">
+                                          <Loader2 className="h-4 w-4 animate-spin" />
+                                        </div>
+                                      )}
                                       {internalLocation && !isSearching && (
                                           <Button
                                               type="button"
@@ -443,5 +447,3 @@ export function SettingsDialog({
     </Dialog>
   );
 }
-
-    
