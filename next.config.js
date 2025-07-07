@@ -1,9 +1,10 @@
-const isProd = process.env.NODE_ENV === 'production'
 
 const nextConfig = {
-  output: 'export',
-  basePath: isProd ? '/MyTasks' : '',
-  assetPrefix: isProd ? '/MyTasks' : '',
+  devIndicators: {
+    allowedDevOrigins: [
+      "*.cloudworkstations.dev",
+    ],
+  },
   env: {
     NEXT_PUBLIC_WEATHER_API_KEY: process.env.NEXT_PUBLIC_WEATHER_API_KEY,
     NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
