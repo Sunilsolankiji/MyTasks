@@ -1,5 +1,10 @@
 
+const isProd = process.env.NODE_ENV === 'production'
+
 const nextConfig = {
+  output: 'export',
+  basePath: isProd ? '/MyTasks' : '',
+  assetPrefix: isProd ? '/MyTasks' : '',
   devIndicators: {
     allowedDevOrigins: [
       "*.cloudworkstations.dev",
