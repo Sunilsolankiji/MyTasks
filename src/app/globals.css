@@ -236,17 +236,4 @@
     from { transform: translateX(0); }
     to { transform: translateX(calc(100vw + 400px)); }
   }
-  
-  .loader-spin {
-    animation: loader-spin-kf 1s linear infinite;
-  }
-
-  @keyframes loader-spin-kf {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
 }

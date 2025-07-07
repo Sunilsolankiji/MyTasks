@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "../ui/separator";
-import { Download, Upload, MapPin, X } from "lucide-react";
+import { Download, Upload, MapPin, X, Loader2 } from "lucide-react";
 import type { Location, WeatherEffectMode } from "@/lib/types";
 import { searchLocations } from "@/services/weather";
 import { useToast } from "@/hooks/use-toast";
@@ -59,24 +59,6 @@ interface SettingsDialogProps {
   weatherEffectMode: WeatherEffectMode;
   onWeatherEffectModeChange: (mode: WeatherEffectMode) => void;
 }
-
-const Loader2 = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={cn('h-4 w-4 loader-spin', className)}
-  >
-    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-  </svg>
-);
-
 
 export function SettingsDialog({ 
   isOpen, 
@@ -350,7 +332,7 @@ export function SettingsDialog({
                                         }}
                                         autoComplete="off"
                                       />
-                                      {isSearching && <Loader2 className="absolute right-9 top-1/2 -translate-y-1/2 h-4 w-4" />}
+                                      {isSearching && <Loader2 className="absolute right-9 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
                                       {internalLocation && !isSearching && (
                                           <Button
                                               type="button"
