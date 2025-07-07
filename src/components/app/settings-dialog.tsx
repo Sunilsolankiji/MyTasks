@@ -318,7 +318,7 @@ export function SettingsDialog({
                                       <Input 
                                         {...field}
                                         placeholder="Search for a city..."
-                                        className="pl-9"
+                                        className="pl-9 pr-10"
                                         onChange={(e) => {
                                             field.onChange(e);
                                             handleLocationSearch(e.target.value);
@@ -333,7 +333,7 @@ export function SettingsDialog({
                                         autoComplete="off"
                                       />
                                       {isSearching && (
-                                        <div className="absolute right-9 top-1/2 -translate-y-1/2">
+                                        <div className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center">
                                           <Loader2 className="h-4 w-4 animate-spin" />
                                         </div>
                                       )}
