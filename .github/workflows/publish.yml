@@ -54,7 +54,6 @@ jobs:
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
         run: |
           npx next build
-          npx next export
 
       - name: Upload artifact 📡
         uses: actions/upload-pages-artifact@v3
