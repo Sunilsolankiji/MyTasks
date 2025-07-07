@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { Leaf } from 'lucide-react';
 import type { WeatherData, WeatherEffectMode } from '@/lib/types';
 
-const createParticles = (effectType: 'rain' | 'snow' | 'cloudy' | 'windy' | 'sunny' | 'mist' | null) => {
+const createParticles = (effectType: 'rain' | 'snow' | 'cloudy' | 'windy' | 'sunny' | 'mist' | null, weather: WeatherData | null) => {
     if (!effectType) return [];
 
     let count = 0;
@@ -13,39 +13,56 @@ const createParticles = (effectType: 'rain' | 'snow' | 'cloudy' | 'windy' | 'sun
     
     switch (effectType) {
       case 'rain':
-        count = 100;
+        // Adjust particle count based on precipitation in mm
+        count = weather ? 50 + weather.current.precip_mm * 50 : 100;
+        count = Math.min(count, 300); // Cap at 300 particles for performance
         particleClass = 'rain-particle';
         break;
       case 'snow':
-        count = 150;
+        // Adjust particle count based on precipitation in mm
+        count = weather ? 75 + weather.current.precip_mm * 75 : 150;
+        count = Math.min(count, 400); // Cap at 400 particles
         particleClass = 'snow-particle';
         break;
       case 'cloudy':
-        count = 15;
+        // Adjust particle count based on cloud cover percentage
+        count = weather ? Math.round(20 * (weather.current.cloud / 100)) : 15;
         particleClass = 'cloud-particle';
         break;
       case 'windy':
-        count = 50;
+        // Adjust particle count based on wind speed in kph
+        count = weather ? Math.round(weather.current.wind_kph * 1.5) : 50;
+        count = Math.min(count, 100); // Cap at 100 particles
         particleClass = 'leaf-particle';
         break;
       case 'mist':
-        count = 20;
+        // Adjust particle count based on humidity
+        count = weather ? Math.round(25 * (weather.current.humidity / 100)) : 20;
         particleClass = 'mist-particle';
         break;
       case 'sunny':
-        return [<div key="sun" className="sun-particle"></div>];
+        const sunStyle: React.CSSProperties = {};
+        if (weather) {
+            // Make pulse faster and more intense if UV index is high
+            const pulseDuration = Math.max(4 - weather.current.uv * 0.2, 1.5);
+            sunStyle.animationDuration = `${pulseDuration}s`;
+        }
+        return [<div key="sun" className="sun-particle" style={sunStyle}></div>];
     }
 
-    return Array.from({ length: count }).map((_, i) => {
+    return Array.from({ length: Math.floor(count) }).map((_, i) => {
       const style: React.CSSProperties = {
         animationDelay: `${Math.random() * 5}s`,
       };
 
       if (effectType === 'rain') {
+        const precip = weather?.current.precip_mm ?? 1;
+        // Faster raindrops for heavier rain
+        const duration = Math.max(0.8 - precip * 0.1, 0.2);
         style.left = `${Math.random() * 100}vw`;
         style.transform = 'translateY(-20vh)';
         (style as any)['--start-y'] = '-20vh';
-        style.animationDuration = `${0.5 + Math.random() * 0.5}s`;
+        style.animationDuration = `${duration + Math.random() * 0.3}s`;
       }
       
       if (effectType === 'snow') {
@@ -71,9 +88,12 @@ const createParticles = (effectType: 'rain' | 'snow' | 'cloudy' | 'windy' | 'sun
       }
 
       if (effectType === 'windy') {
+        const windSpeed = weather?.current.wind_kph ?? 20;
+        // Faster leaves for stronger wind
+        const duration = Math.max(8 - windSpeed * 0.1, 2);
         style.left = '-30px';
         style.top = `${Math.random() * 100}vh`;
-        style.animationDuration = `${4 + Math.random() * 4}s`;
+        style.animationDuration = `${duration + Math.random() * (duration / 2)}s`;
         style.transform = `scale(${0.8 + Math.random() * 0.4})`;
         style.opacity = 0;
         return <Leaf key={i} className={particleClass} style={style} />;
@@ -130,7 +150,7 @@ export function WeatherEffect({ weather, mode }: WeatherEffectProps) {
         <>
             {allEffects.map(effect => (
                 <div key={effect} className={`weather-effect ${effect}`}>
-                    {createParticles(effect)}
+                    {createParticles(effect, weather)}
                 </div>
             ))}
         </>
@@ -145,7 +165,7 @@ export function WeatherEffect({ weather, mode }: WeatherEffectProps) {
 
   return (
     <div className={`weather-effect ${effectToRender}`}>
-      {createParticles(effectToRender as any)}
+      {createParticles(effectToRender as any, weather)}
     </div>
   );
 }
