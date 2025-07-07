@@ -178,35 +178,35 @@ export default function TaskPage() {
       }
     };
     
-    syncLocalTasks();
+    syncLocalTasks().then(() => {
+      const cloudTasksRef = collection(db, 'users', user.uid, 'tasks');
+      const unsubscribe = onSnapshot(cloudTasksRef, (snapshot) => {
+          const cloudTasks = snapshot.docs.map(doc => {
+              const data = doc.data();
+              return {
+                  ...data,
+                  id: doc.id,
+                  date: data.date ? (data.date as Timestamp).toDate() : undefined,
+                  creationDate: (data.creationDate as Timestamp).toDate(),
+                  completionDate: data.completionDate ? (data.completionDate as Timestamp).toDate() : undefined,
+              } as Task;
+          });
+          setTasks(cloudTasks);
+          setIsLoading(false);
+      }, (error) => {
+          console.error("Firestore listener error:", error);
+          let description = "Could not fetch tasks from the cloud.";
+          if (error.code === 'permission-denied') {
+              description = "Fetch failed. Please check your Firestore security rules to allow read access.";
+          }
+          toast({ title: "Sync Error", description, variant: "destructive" });
+          setIsLoading(false);
+      });
 
-    const cloudTasksRef = collection(db, 'users', user.uid, 'tasks');
-    const unsubscribe = onSnapshot(cloudTasksRef, (snapshot) => {
-        const cloudTasks = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                ...data,
-                id: doc.id,
-                date: data.date ? (data.date as Timestamp).toDate() : undefined,
-                creationDate: (data.creationDate as Timestamp).toDate(),
-                completionDate: data.completionDate ? (data.completionDate as Timestamp).toDate() : undefined,
-            } as Task;
-        });
-        setTasks(cloudTasks);
-        setIsLoading(false);
-    }, (error) => {
-        console.error("Firestore listener error:", error);
-        let description = "Could not fetch tasks from the cloud.";
-        if (error.code === 'permission-denied') {
-            description = "Fetch failed. Please check your Firestore security rules to allow read access.";
-        }
-        toast({ title: "Sync Error", description, variant: "destructive" });
-        setIsLoading(false);
+      return () => {
+        unsubscribe();
+      };
     });
-
-    return () => {
-      unsubscribe();
-    };
   }, [user, authChecked, toast]);
 
   useEffect(() => {
@@ -339,7 +339,9 @@ export default function TaskPage() {
       };
       setTasks(prevTasks => [...prevTasks, updatedTask]);
     }
-    writeTask(updatedTask);
+    if (user) {
+        writeTask(updatedTask);
+    }
     setEditingTask(null);
   };
 
@@ -357,12 +359,20 @@ export default function TaskPage() {
     const task = tasks.find(t => t.id === id);
     if (task) {
         const updatedTask = { ...task, completed, completionDate: completed ? new Date() : undefined };
-        writeTask(updatedTask);
+        if (user) {
+            writeTask(updatedTask);
+        } else {
+            setTasks(prevTasks => prevTasks.map(t => t.id === id ? updatedTask : t));
+        }
     }
   };
 
   const handleDeleteTask = (id: string) => {
-    deleteTaskFromDb(id);
+    if (user) {
+        deleteTaskFromDb(id);
+    } else {
+        setTasks(prevTasks => prevTasks.filter(t => t.id !== id));
+    }
   };
 
   const handleUpdateProjectName = (name: string) => {
