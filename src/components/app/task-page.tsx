@@ -104,19 +104,11 @@ export default function TaskPage() {
       try {
         const storedTasks = localStorage.getItem("tasks");
         if (storedTasks) {
-          const parsedTasks = JSON.parse(storedTasks).map((task: any) => ({
-            ...task,
-            priority: task.priority || 'medium',
-            date: task.date ? new Date(task.date) : undefined,
-            creationDate: task.creationDate ? new Date(task.creationDate) : new Date(),
-            completionDate: task.completionDate ? new Date(task.completionDate) : undefined,
-            referenceLinks: task.referenceLinks || [],
-          }));
-          const validation = tasksImportSchema.safeParse(parsedTasks.map((t: Task) => ({...t, date: t.date?.toISOString(), creationDate: t.creationDate.toISOString(), completionDate: t.completionDate?.toISOString()})));
-          if (validation.success) {
-            setTasks(validation.data as Task[]);
+          const validationResult = tasksImportSchema.safeParse(JSON.parse(storedTasks));
+          if (validationResult.success) {
+            setTasks(validationResult.data as Task[]);
           } else {
-             console.error("Local storage validation error", validation.error.format());
+             console.error("Local storage validation error", validationResult.error.format());
              localStorage.removeItem("tasks");
              setTasks([]);
           }
@@ -140,7 +132,7 @@ export default function TaskPage() {
       if (storedTasks) {
         setIsSyncing(true);
         try {
-          const validationResult = tasksImportSchema.safeParse(JSON.parse(storedTasks).map((t: Task) => ({...t, date: t.date?.toISOString(), creationDate: t.creationDate.toISOString(), completionDate: t.completionDate?.toISOString()})));
+          const validationResult = tasksImportSchema.safeParse(JSON.parse(storedTasks));
 
           if (validationResult.success && validationResult.data.length > 0) {
               const localTasks = validationResult.data as Task[];
