@@ -515,11 +515,8 @@ export default function TaskPage() {
     );
   }, [allTasks]);
 
-  const upcomingTasks = useMemo(() => {
-    const todayString = new Date().toDateString();
-    return allTasks.filter(task =>
-      task.date && !task.completed && new Date(task.date).toDateString() !== todayString
-    );
+  const pendingTasks = useMemo(() => {
+    return allTasks.filter(task => !task.completed);
   }, [allTasks]);
 
   const completedTasks = useMemo(() => {
@@ -625,7 +622,7 @@ export default function TaskPage() {
                     </TabsContent>
                     <TabsContent value="pending" className="mt-0">
                       {isLoading ? <TaskListSkeleton /> : <TaskList
-                        tasks={upcomingTasks}
+                        tasks={pendingTasks}
                         onToggleComplete={handleToggleComplete}
                         onDelete={handleDeleteTask}
                         onEdit={handleOpenEditDialog}
