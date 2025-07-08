@@ -604,7 +604,7 @@ export default function TaskPage() {
             <TabsList className="grid w-full grid-cols-4 mt-4">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="today">Today</TabsTrigger>
-              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+              <TabsTrigger value="pending">Pending</TabsTrigger>
               <TabsTrigger value="completed">Completed</TabsTrigger>
             </TabsList>
           </div>
@@ -623,7 +623,7 @@ export default function TaskPage() {
                         onEdit={handleOpenEditDialog}
                       />}
                     </TabsContent>
-                    <TabsContent value="upcoming" className="mt-0">
+                    <TabsContent value="pending" className="mt-0">
                       {isLoading ? <TaskListSkeleton /> : <TaskList
                         tasks={upcomingTasks}
                         onToggleComplete={handleToggleComplete}
