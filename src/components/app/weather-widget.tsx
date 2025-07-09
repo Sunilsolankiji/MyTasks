@@ -1,17 +1,20 @@
 
 "use client";
 
-import { Loader2, MapPin, Droplets, Wind } from "lucide-react";
+import { Loader2, MapPin, Droplets, Wind, RefreshCw } from "lucide-react";
 import type { Location, WeatherData } from "@/lib/types";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface WeatherWidgetProps {
     location: Location | null;
     weather: WeatherData | null;
     isLoading: boolean;
+    onRefresh: () => void;
 }
 
-export function WeatherWidget({ location, weather, isLoading }: WeatherWidgetProps) {
+export function WeatherWidget({ location, weather, isLoading, onRefresh }: WeatherWidgetProps) {
     if (!location) {
         return null;
     }
@@ -49,6 +52,17 @@ export function WeatherWidget({ location, weather, isLoading }: WeatherWidgetPro
                 <Wind className="h-4 w-4 text-muted-foreground" />
                 <span>{weather.current.wind_kph} km/h</span>
             </div>
+            <Button
+                variant="ghost"
+                size="icon"
+                onClick={onRefresh}
+                disabled={isLoading}
+                className="h-7 w-7"
+                title="Refresh weather"
+            >
+                <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+                <span className="sr-only">Refresh weather</span>
+            </Button>
         </div>
     );
 }

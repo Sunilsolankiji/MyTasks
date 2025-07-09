@@ -564,7 +564,7 @@ export default function TaskPage() {
                 )}
                 <h1 className="text-3xl font-bold tracking-tight">Your Tasks</h1>
               </div>
-              {showWeatherWidget && <WeatherWidget location={location} weather={weather} isLoading={isWeatherLoading} />}
+              {showWeatherWidget && <WeatherWidget location={location} weather={weather} isLoading={isWeatherLoading} onRefresh={fetchWeather} />}
               <div className="flex gap-4 w-full sm:w-auto flex-wrap justify-end items-center">
                 <div className="relative w-full sm:w-auto sm:flex-grow">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
